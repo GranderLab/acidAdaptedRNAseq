@@ -1,0 +1,37 @@
+---
+title: "Vignette Title"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+To repete the total analysis you must run the following scripts pre-installation from the package root directory.
+Rscript -e "source('./inst/R.scripts/getAnnotation.R'); getAnnotation()"
+Rscript -e "source('./inst/data-raw/processGO.R'); processGO()"
+Rscript -e "source('./inst/data-raw/runMe.R'); runMe()"
+Rscript -e "source('./inst/data-raw/runHCT.R'); runHCT()"
+##add correlation script and note RAM requirements
+after installation:
+
+To re-create the MA plot from DESeq2 use: 
+```{r}
+data(HCT116.DESeq2.Obj) ##or any DESeq2 object
+plotMA(results(HCT116.DESeq2.Obj))
+```
+
+To re-create the mean variance trend plot from limma/voom use:
+
+```{r}
+data(Me.limma.Obj)
+targets <- data.frame(
+        library <- c("parentalA","parentalB","parentalC","adaptedA","adaptedB","adaptedC"),
+        condition <- factor(c(rep("parental", 3),rep("adapted", 3)),levels=c("parental", "adapted"))
+)
+
+design <- DeMilitoRNAseq:::.design.contrasts.limma(targets)
+hsa.voom <- limma::voom(Me.limma.Obj, design=design, plot=TRUE)
+```

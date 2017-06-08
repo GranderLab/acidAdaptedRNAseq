@@ -1,0 +1,29 @@
+Package: acidAdaptedRNAseq
+Title: Analysis of RNAseq data for DeMilito lab
+Version: 0.0.0.9000
+Authors@R: person("Jason", "Serviss", , "jason.serviss@ki.se", role = c("aut", "cre"))
+Description: What the package does (one paragraph)
+Depends:
+    R (>= 3.2.2)
+Imports:
+    plotly,
+    RColorBrewer,
+    car,
+    rgl,
+    ggplot2,
+    ggthemes,
+    tibble,
+    dplyr,
+    topGO,
+    biomaRt
+Suggests:
+    RSQLite,
+    knitr,
+    rmarkdown,
+    topGO,
+    mygene,
+    org.Hs.eg.db
+License: What license is it under?
+LazyData: true
+RoxygenNote: 6.0.1
+VignetteBuilder: knitr
