@@ -19,19 +19,11 @@ after installation:
 
 To re-create the MA plot from DESeq2 use: 
 ```{r}
-data(HCT116.DESeq2.Obj) ##or any DESeq2 object
-plotMA(results(HCT116.DESeq2.Obj))
+
 ```
 
 To re-create the mean variance trend plot from limma/voom use:
 
 ```{r}
-data(Me.limma.Obj)
-targets <- data.frame(
-        library <- c("parentalA","parentalB","parentalC","adaptedA","adaptedB","adaptedC"),
-        condition <- factor(c(rep("parental", 3),rep("adapted", 3)),levels=c("parental", "adapted"))
-)
 
-design <- DeMilitoRNAseq:::.design.contrasts.limma(targets)
-hsa.voom <- limma::voom(Me.limma.Obj, design=design, plot=TRUE)
 ```

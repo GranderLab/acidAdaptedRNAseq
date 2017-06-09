@@ -35,3 +35,22 @@ namedListToTibble <- function(l) {
         )
     }
 }
+
+#' getGO.db
+#'
+#' Get annotation from \link[GO.db]{GO.db}.
+#'
+#' @name getGO.db
+#' @rdname getGO.db
+#' @author Jason T. Serviss
+#' @keywords getGO.db
+#' @examples
+#' getGO.db()
+#'
+#' @export
+#' @importFrom AnnotationDbi select
+#' @import GO.db
+
+getGO.db <- function() {
+    select(GO.db, keys(GO.db, "GOID"), c("TERM", "ONTOLOGY"))
+}

@@ -1,0 +1,41 @@
+#' Differential Exression Results.
+#'
+#' @title Results of differential expression analysis with DESeq2.
+#' @description Produced with data-raw/runHCT.R runHCT().
+#' @docType data
+#' @name deResults
+#' @format data frame
+#' \describe{
+#'   \item{ID}{character. Ensembl ID.}
+#'   \item{chr}{character. Chromosome.}
+#'   \item{start}{int. Transcription start site.}
+#'   \item{end}{int. Transcription end site.}
+#'   \item{geneName}{character. Gene name.}
+#'   \item{biotype}{character. Gene biotype.}
+#'   \item{parentalA}{numeric. Normalized counts for the HCT116 parental
+#'       sample replicate 1.}
+#'   \item{parentalB}{numeric. Normalized counts for the HCT116 parental
+#'       sample replicate 2.}
+#'   \item{parentalC}{numeric. Normalized counts for the HCT116 parental
+#'       sample replicate 3.}
+#'   \item{adaptedA}{numeric. Normalized counts for the HCT116 adapted
+#'       sample replicate 1.}
+#'   \item{adaptedB}{numeric. Normalized counts for the HCT116 adapted
+#'       sample replicate 2.}
+#'   \item{adaptedC}{numeric. Normalized counts for the HCT116 adapted
+#'       sample replicate 3.}
+#'   \item{baseMean}{character. Gene biotype.}
+
+#' }
+#' @usage deResults
+#' @return A data frame containing the results from the
+#'    \href{http://bioconductor.org/packages/DESeq2/}{DESeq2} differential
+#'    expression analysis. Normalized counts are derived using the
+#'    \link[DESeq2]{counts} function with argument \code{normalized} set to
+#'    TRUE. \code{baseMean, log2FoldChange, lfcSE, stat, pvalue,} and
+#'    \code{padj} columns were derived using the \link[DESeq2]{results} function
+#'    from the same package.
+#' @examples
+#' deResults
+#'
+NULL

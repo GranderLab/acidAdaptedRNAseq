@@ -1,0 +1,104 @@
+---
+title: "GO analysis"
+author: "Jason T. Serviss"
+date: "09/06/2017"
+output:
+  html_document:
+    code_folding: hide
+    highlight: pygments
+    theme: readable
+---
+
+```{r functions}
+namedListToTibble <- function(l) {
+    if(length(names(l)) != length(l)) {
+        stop("The list you submitted might not be named.")
+    }
+    if(!is.null(names(l[[1]]))) {
+        ni <- gsub(".*\\.(.*)$", "\\1", names(unlist(l)))
+        n <- rep(names(l), lengths(l))
+        tibble::tibble(
+            names=n,
+            inner.names=ni,
+            variables=unname(unlist(l))
+        )
+    } else {
+        n <- rep(names(l), lengths(l))
+        tibble::tibble(
+            names=n,
+            variables=unname(unlist(l))
+        )
+    }
+}
+```
+
+```{r libraries, message=FALSE}
+source('~/Github/diverseScripts/R/examples/largeDivergingPalettes.R')
+library(acidAdaptedRNAseq)
+data(topGOresult, package="DeMilitoRNAseq")
+sig <- GO[GO$classicFisher < 0.05, ]
+sig$classicFisher <- as.numeric(sig$classicFisher) #FIX THIS FUCKING THING
+library(GO.db)
+vals = AnnotationDbi::select(GO.db, keys(GO.db, "GOID"), c("TERM", "ONTOLOGY"))
+library(GOSim)
+library(igraph)
+library(tidyverse)
+library(ggraph)
+library(multipanelfigure)
+library(grid)
+library(gtable)
+library(magrittr)
+library(printr)
+```
+
+Download the GO graph for the significant terms and run the spin-glass community detection algorithm. Show the number of
+detected communities and their size.
+
+Note to self: Check if what getGOgraph is downloading is equal to the ancestors via GO.db.
+```{r, message=FALSE}
+#get GO graph
+g <-downloadGOgraph(sig$GO.ID)
+
+#run community analysis
+tmp <- collapseGraph(g)
+cg <- tmp[[1]]
+comSummary <- tmp[[2]] %>%
+    left_join(vals) %>%
+    select(-ONTOLOGY) %>%
+    setNames(c(colnames(tmp[[2]]), groupTerm))
+
+comSummary
+```
+
+Calculate and show the number of genes included in each community.
+```{r}
+#calculate genes per term
+genesInTerm <- function(x) {
+    data.frame(
+        nGenes=length(
+            unlist(
+                strsplit(
+                    sig[sig$GO.ID %in% pull(x, GOID), "ID"],
+                    ", "
+                )
+            )
+        )
+    )
+}
+
+comSummary %>% 
+    group_by(communityName) %>%
+    do(genesInTerm(.))
+```
+
+The spin-glass algorithm detected 39 different communities, seen above.
+Calculate the authority score for all nodes and identify the node with the highest authority score per community.
+In the case that several nodes have the highest authority score per community, randomly pick one of these.
+```{r}
+
+d %>% namedListToTibble(.) %>%
+    left_join(vals, by=c("variables" = "GOID")) %>%
+    select(-ONTOLOGY) %>%
+    setNames(., c("group", "group GO ID", "group term"))
+
+```
