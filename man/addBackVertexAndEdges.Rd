@@ -4,8 +4,6 @@
 \alias{addBackVertexAndEdges}
 \title{addBackVertexAndEdges}
 \arguments{
-\item{g}{A GO graph in igraph format.}
-
 \item{cg}{The collapsed graph from the function \code{\link{collapseGraph}}.}
 
 \item{assignment}{A data frame of edges from term to community term with
@@ -17,9 +15,7 @@ and collapses the graph by community using the name of the node with the
 highest authority score to name each vertex in the community.
 }
 \examples{
-terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
-g <- downloadGOgraph(terms)
-collapseGraph(g)
+#no examples yet
 
 }
 \author{

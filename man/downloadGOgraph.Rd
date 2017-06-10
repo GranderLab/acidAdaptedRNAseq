@@ -4,7 +4,7 @@
 \alias{downloadGOgraph}
 \title{downloadGOgraph}
 \arguments{
-\item{terms}{Character. A character vector of GO IDs.}
+\item{terms}{GO IDs to get graph for.}
 }
 \value{
 A GO graph in igraph format with vertex attributes \emph{name} set to
@@ -14,7 +14,8 @@ A GO graph in igraph format with vertex attributes \emph{name} set to
 Downloads the GO graph for a set of GO IDs and converts it to igraph format.
 }
 \examples{
-downloadGOgraph("GO:0006915")
+terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
+downloadGOgraph(terms)
 
 }
 \author{

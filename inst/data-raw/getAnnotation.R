@@ -5,7 +5,7 @@ getAnnotation <- function() {
         "ftp://ftp.ensembl.org/",
         "pub/release-73/gtf/homo_sapiens/Homo_sapiens.GRCh37.73.gtf.gz ",
         "-O ./inst/tmp/Homo_sapiens.GRCh37.73.gtf.gz",
-        sep=""
+        sep = ""
     )
     system(sCmd1)
     
@@ -15,13 +15,13 @@ getAnnotation <- function() {
     library(GenomicFeatures)
     txdb <- makeTxDbFromGFF(
         "./inst/tmp/Homo_sapiens.GRCh37.73.gtf",
-        format="gtf"
+        format = "gtf"
     )
-    annotation <- as.data.frame(genes(txdb))[,-4]
+    annotation <- as.data.frame(genes(txdb))[, -4]
     colnames(annotation) <- c('chr', 'start', 'end', 'strand', 'ID')
     
     otherData <- .getOtherData(annotation)
-    annotation <- merge(annotation, otherData, by="ID")
+    annotation <- merge(annotation, otherData, by = "ID")
     
     set <- c(
         'ID',
@@ -34,20 +34,20 @@ getAnnotation <- function() {
         'description'
     )
     
-    annotation <- annotation[ ,set]
-    save(annotation, file="./data/annotation.rda", compress="bzip2")
+    annotation <- annotation[, set]
+    save(annotation, file = "./data/annotation.rda", compress = "bzip2")
 }
 
 .getOtherData <- function(annotation){
     values <- annotation$ID
-    ensembl = biomaRt::useMart(
+    ensembl <- biomaRt::useMart(
         biomart = "ENSEMBL_MART_ENSEMBL",
-        dataset="hsapiens_gene_ensembl",
+        dataset = "hsapiens_gene_ensembl",
         host = "sep2013.archive.ensembl.org"
     )
     
     IDs <- biomaRt::getBM(
-        attributes=c(
+        attributes = c(
             'ensembl_gene_id',
             'description',
             'gene_biotype',

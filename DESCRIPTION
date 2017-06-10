@@ -27,7 +27,8 @@ Imports:
 Suggests:
     RSQLite,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 License: GPL-3
 LazyData: true
 RoxygenNote: 6.0.1

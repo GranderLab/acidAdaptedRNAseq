@@ -26,12 +26,19 @@ runTopGO <- function(save=FALSE) {
     DE <- deResults[deResults$padj < 0.05, "ID"]
     
     ##runGO
-    GO = .runGO(DE, universe)
+    GO <- .runGO(DE, universe)
     
     ##get full GO names
-    ensembl = useMart("ensembl", dataset="hsapiens_gene_ensembl")
-    go <- getBM(attributes=c('go_id', 'name_1006'), mart = ensembl)
-    GO <- merge(GO, go, by.x="GO.ID", by.y="go_id", all.x=TRUE, all.y=FALSE)
+    ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+    go <- getBM(attributes = c('go_id', 'name_1006'), mart = ensembl)
+    GO <- merge(
+        GO,
+        go,
+        by.x = "GO.ID",
+        by.y = "go_id",
+        all.x = TRUE,
+        all.y = FALSE
+    )
     GO$name_1006[is.na(GO$name_1006)] <- GO$Term[is.na(GO$name_1006)]
     GO$Term <- GO$name_1006
     GO$name_1006 <- NULL
@@ -39,8 +46,8 @@ runTopGO <- function(save=FALSE) {
     ##check coverage
     .Pcoverage(GO, DE)
     
-    if(save) {
-        save(GO, file="data/topGOresult.rda", compress = "bzip2")
+    if (save) {
+        save(GO, file = "data/topGOresult.rda", compress = "bzip2")
     }
     
     return(GO)
@@ -78,12 +85,12 @@ runTopGO <- function(save=FALSE) {
     outTmp2 <- outTmp[outTmp$classicFisher < 1, ]
     
     ##annotate genes associated with reported GO terms
-    allGO = genesInTerm(GOdata) ###gets all genes related to go terms
-    newGO = .namedListToDF(x = allGO, y = DE)
+    allGO <- genesInTerm(GOdata) ###gets all genes related to go terms
+    newGO <- .namedListToDF(x = allGO, y = DE)
     
     ##merge GO results to include the genes involved in the GO terms
-    merg = merge(outTmp2, newGO, by = "GO.ID", all.x = TRUE)
-    merg = merg[order(merg$classicFisher), ]
+    merg <- merge(outTmp2, newGO, by = "GO.ID", all.x = TRUE)
+    merg <- merg[order(merg$classicFisher), ]
     return(merg)
 }
 
@@ -92,14 +99,14 @@ runTopGO <- function(save=FALSE) {
 #This also annotates gene name from given gene ID.
 
 .namedListToDF <- function(x, y) {
-    out = data.frame()
+    out <- data.frame()
     
-    for( tt in 1:length(x) ) {
+    for ( tt in 1:length(x) ) {
         merg <- data.frame()
-        curr = x[tt]
-        name = names(curr)
-        INvalues = data.frame(ID = unlist(strsplit(curr[[1]], ", ")))
-        merg = merge(geneAnnotation, INvalues, by="ID", all.y=TRUE)
+        curr <- x[tt]
+        name <- names(curr)
+        INvalues <- data.frame(ID = unlist(strsplit(curr[[1]], ", ")))
+        merg <- merge(geneAnnotation, INvalues, by = "ID", all.y = TRUE)
         subs <- merg[merg$ID %in% y, ]
         out[tt, "GO.ID"] <- name
         out[tt, "gene_name"] <- ifelse(
@@ -135,8 +142,7 @@ runTopGO <- function(save=FALSE) {
     
     ##calculate coverage and print output
     final <- unique(return)
-    found <- final[final %in% interesting]
-    percent <- (length(final) / length(interesting))*100
+    percent <- (length(final) / length(interesting)) * 100
     
     print("% coverage:")
     print(percent)
@@ -160,16 +166,18 @@ runTopGO <- function(save=FALSE) {
 #' @name downloadGOgraph
 #' @rdname downloadGOgraph
 #' @author Jason T. Serviss
-#' @param terms Character. A character vector of GO IDs.
+#' @param terms GO IDs to get graph for.
 #' @keywords downloadGOgraph
 #' @return A GO graph in igraph format with vertex attributes \emph{name} set to
 #'    the GO IDs and the edge attribute \emph{weight} set to 1 for all edges.
 #' @examples
-#' downloadGOgraph("GO:0006915")
+#' terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
+#' downloadGOgraph(terms)
 #'
 #' @export
 #' @importFrom igraph igraph.from.graphNEL
 #' @importFrom GOSim getGOGraph
+#' @importFrom dplyr if_else
 NULL
 
 downloadGOgraph <- function(terms) {
@@ -192,9 +200,7 @@ downloadGOgraph <- function(terms) {
 #' @return A list with the first element being the collapsed graph and the
 #'    second element being a summary of the community analysis.
 #' @examples
-#' terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
-#' g <- downloadGOgraph(terms)
-#' collapseGraph(g)
+#' #no examples yet
 #'
 #' @export
 #' @importFrom igraph cluster_spinglass authority_score contract.vertices V
@@ -205,11 +211,11 @@ downloadGOgraph <- function(terms) {
 #' @importFrom magrittr %>%
 NULL
 
-collapseGraph <- function(g, spins=200) {
+collapseGraph <- function(g, spins = 200) {
     
     #run community analysis
     set.seed(1998)
-    spinglass <- cluster_spinglass(g, spins=200)
+    spinglass <- cluster_spinglass(g, spins = 200)
     
     #calculate the authority score for each vertex in the graph
     as <- authority_score(g)$vector
@@ -219,12 +225,13 @@ collapseGraph <- function(g, spins=200) {
     cg <- .contractAndSimplify(g, spinglass, as)
     
     #assemble summary
-    summary <- .assembleCommunitySummary(spinglass, as)
+    summary <- .assembleCommunitySummary(spinglass, as, cg)
     
     return(list(cg, summary))
 }
 
 #determines the vertex with the highest authority score per community
+
 maxAuth <- function(x, as) {
     curr <- as[names(as) %in% x]
     names(curr)[curr == max(curr)][1]
@@ -237,9 +244,12 @@ maxAuth <- function(x, as) {
     cg <- g %>%
       contract.vertices(
         mapping = m,
-        vertex.attr.comb=function(x) maxAuth(x, as)
+        vertex.attr.comb = list(
+            name = function(x) maxAuth(x, as),
+            pvalue = "ignore"
+        )
     ) %>%
-    igraph::simplify(edge.attr.comb=list(weight="sum"))
+    igraph::simplify(edge.attr.comb = list(weight = "sum"))
 }
 
 .assembleCommunitySummary <- function(spinglass, as, cg) {
@@ -277,25 +287,59 @@ maxAuth <- function(x, as) {
     
     . <- NULL
     summary <- namedListToTibble(l) %>%
-      left_join(as, by=c("variables" = "vertex")) %>%
-      left_join(comID, by=c("names" = "communityName")) %>%
-      left_join(vals, by=c("variables" = "GOID")) %>%
-      select_(~-ONTOLOGY) %>%
-      left_join(vals, by=c("communityID" = "GOID")) %>%
-      select_(~-ONTOLOGY) %>%
-      add_column(size = spinglass$csize[as.numeric(pull(., names))]) %>%
-      setNames(summaryNames) %>%
-      select_(
-        ~communityName,
-        ~communityID,
-        ~communitySize,
-        ~communityTerm,
-        ~GOID,
-        ~authority.score,
-        ~Term
+        left_join(as, by = c("variables" = "vertex")) %>%
+        left_join(comID, by = c("names" = "communityName")) %>%
+        left_join(vals, by = c("variables" = "GOID")) %>%
+        select_(~-ONTOLOGY) %>%
+        left_join(vals, by = c("communityID" = "GOID")) %>%
+        select_(~-ONTOLOGY) %>%
+        add_column(size = spinglass$csize[as.numeric(pull(., names))]) %>%
+        setNames(summaryNames) %>%
+        select_(
+            ~communityName,
+            ~communityID,
+            ~communitySize,
+            ~communityTerm,
+            ~GOID,
+            ~authority.score,
+            ~Term
       )
     
     return(summary)
+}
+
+#' addAttributes1
+#'
+#' Adds vertex and edge attributes to the collapsed graph BEFORE the nodes have
+#' been added back from the uncollapsed graph.
+#'
+#' @name addAttributes1
+#' @rdname addAttributes1
+#' @author Jason T. Serviss
+#' @param cg The collapsed graph from the function \code{\link{collapseGraph}}.
+#' @param data A tibble with the GO IDs in column \code{GOID} and community
+#'     terms in the column \code{communityTerm}.
+#' @keywords addAttributes1
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @importFrom igraph get.edgelist set_edge_attr set_vertex_attr
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr left_join pull
+#' @importFrom magrittr %>%
+NULL
+
+addAttributes1 <- function(cg, data) {
+    el <- get.edgelist(cg, names = TRUE) %>%
+        as_tibble() %>%
+        left_join(data, by = c("V1" = "GOID")) %>%
+        pull(var = 'communityTerm')
+    
+    cg %>%
+        set_edge_attr(name = 'communityEdge', value = TRUE) %>%
+        set_edge_attr(name = 'colour', value = el) %>%
+        set_vertex_attr('communityVertex', value = TRUE)
 }
 
 #' addBackVertexAndEdges
@@ -307,38 +351,139 @@ maxAuth <- function(x, as) {
 #' @name addBackVertexAndEdges
 #' @rdname addBackVertexAndEdges
 #' @author Jason T. Serviss
-#' @param g A GO graph in igraph format.
 #' @param cg The collapsed graph from the function \code{\link{collapseGraph}}.
 #' @param assignment A data frame of edges from term to community term with
 #'    colnames \emph{from} and \emph{to}.
 #' @keywords addBackVertexAndEdges
 #' @examples
-#' terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
-#' g <- downloadGOgraph(terms)
-#' collapseGraph(g)
+#' #no examples yet
 #'
 #' @export
-#' @importFrom igraph get.vertex.attribute add_vertices add_edges
+#' @importFrom igraph V add_vertices add_edges
 #' @importFrom GOSim getGOGraph
 #' @importFrom magrittr %>%
 NULL
 
-addBackVertexAndEdges <- function(g, cg, assignment) {
-    bools1 <- !get.vertex.attribute(g)$name %in% get.vertex.attribute(cg)$name
-    vertexToAdd <- get.vertex.attribute(g)$name[bools1]
+addBackVertexAndEdges <- function(cg, assignment) {
     
-    cg <- cg %>%
-        add_vertices(length(vertexToAdd), attr = list(name=vertexToAdd)) %>%
-        add_edges(c(rbind(
-            match(assignment$from, get.vertex.attribute(.)$name),
-            match(assignment$to, get.vertex.attribute(.)$name)
+    . <- NULL
+    cg %>%
+        add_vertices(
+            nrow(assignment),
+            attr = list(name = pull(assignment, from))
+        ) %>%
+        add_edges(c(
+            rbind(
+                match(pull(assignment, from), V(.)$name),
+                match(pull(assignment, to),   V(.)$name)
             )
         ))
-
 }
 
+#' addAttributes2
+#'
+#' Adds vertex and edge attributes to the collapsed graph AFTER the nodes have
+#' been added back from the uncollapsed graph.
+#'
+#' @name addAttributes2
+#' @rdname addAttributes2
+#' @author Jason T. Serviss
+#' @param cg The collapsed graph from the function \code{\link{collapseGraph}}.
+#' @param data A tibble with the GO IDs in column \code{GOID} and community
+#'     terms in the column \code{communityTerm}.
+#' @keywords addAttributes2
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @importFrom igraph get.edgelist set_edge_attr set_vertex_attr
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr left_join pull if_else
+#' @importFrom magrittr %>%
+NULL
 
+addAttributes2 <- function(cg, data) {
+    el2 <- get.edgelist(cg, names = TRUE) %>%
+        as_tibble() %>%
+        left_join(data, by=c("V2" = "GOID")) %>%
+        pull(var = 'communityTerm')
+    
+    cg %>%
+        set_edge_attr(
+            name = 'communityEdge',
+            value = if_else(is.na(E(.)$communityEdge), 0.75, 1)
+        ) %>%
+        set_edge_attr(
+            name = 'colour',
+            value = if_else(is.na(E(.)$colour), el2, E(.)$colour)
+        ) %>%
+        set_vertex_attr(
+            name = 'communityVertex',
+            value = if_else(is.na(V(.)$communityVertex), 0, 1)
+        ) %>%
+        set_vertex_attr(
+            name = 'community',
+            value = data[match(V(.)$name, data$GOID), ]$communityTerm
+        )
+}
 
+#' plotCollapsedGraph
+#'
+#' Plots the collapsed graph.
+#'
+#' @name plotCollapsedGraph
+#' @rdname plotCollapsedGraph
+#' @author Jason T. Serviss
+#' @param cg The collapsed graph from the function \code{\link{collapseGraph}}.
+#' @keywords plotCollapsedGraph
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @importFrom igraph get.edgelist set_edge_attr set_vertex_attr
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr left_join pull
+#' @importFrom magrittr %>%
+NULL
 
-
-
+plotCollapsedGraph <- function(cg, legend.nrow=8, legend.points=7) {
+    fixedCols <- col64()[c(3:8, 10:18, 20:31, 35, 37, 40, 42:47, 49:60)]
+    
+    collapsed <- ggraph(cg, layout = 'fr') +
+    geom_edge_link(
+        aes(
+            edge_alpha = communityEdge,
+            colour = colour
+        ),
+        edge_width = 0.5
+    ) +
+    geom_node_point(
+        aes(
+            colour = community,
+            size = communityVertex
+        )
+    ) +
+    theme_void() +
+    theme(
+        legend.position = "top",
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 16)
+    ) +
+    guides(
+        colour =
+            guide_legend(
+                title = "Community",
+                nrow = legend.nrow,
+                title.position = "top",
+                override.aes = list(size = legend.points)
+            ),
+        edge_colour=FALSE,
+        edge_alpha=FALSE,
+        size=FALSE
+    ) +
+    scale_colour_manual(values=fixedCols) +
+    scale_edge_color_manual(values=fixedCols)
+    
+    collapsed
+    return(collapsed)
+}

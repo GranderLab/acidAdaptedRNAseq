@@ -9,37 +9,10 @@ output:
     theme: readable
 ---
 
-```{r functions}
-namedListToTibble <- function(l) {
-    if(length(names(l)) != length(l)) {
-        stop("The list you submitted might not be named.")
-    }
-    if(!is.null(names(l[[1]]))) {
-        ni <- gsub(".*\\.(.*)$", "\\1", names(unlist(l)))
-        n <- rep(names(l), lengths(l))
-        tibble::tibble(
-            names=n,
-            inner.names=ni,
-            variables=unname(unlist(l))
-        )
-    } else {
-        n <- rep(names(l), lengths(l))
-        tibble::tibble(
-            names=n,
-            variables=unname(unlist(l))
-        )
-    }
-}
-```
-
 ```{r libraries, message=FALSE}
-source('~/Github/diverseScripts/R/examples/largeDivergingPalettes.R')
+source('~/Github/diverseScripts/R/scripts/largeDivergingPalettes.R')
 library(acidAdaptedRNAseq)
-data(topGOresult, package="DeMilitoRNAseq")
-sig <- GO[GO$classicFisher < 0.05, ]
-sig$classicFisher <- as.numeric(sig$classicFisher) #FIX THIS FUCKING THING
 library(GO.db)
-vals = AnnotationDbi::select(GO.db, keys(GO.db, "GOID"), c("TERM", "ONTOLOGY"))
 library(GOSim)
 library(igraph)
 library(tidyverse)
@@ -51,54 +24,85 @@ library(magrittr)
 library(printr)
 ```
 
-Download the GO graph for the significant terms and run the spin-glass community detection algorithm. Show the number of
-detected communities and their size.
+```{r, message=FALSE}
+#load GO result and subset signignificant terms
+data(topGOresult, package = "acidAdaptedRNAseq")
+sig <- topGOresult[topGOresult$classicFisher < 0.05, ]
+```
 
-Note to self: Check if what getGOgraph is downloading is equal to the ancestors via GO.db.
+Download the GO graph for the significant terms and run the spin-glass community
+detection algorithm. Show the number of detected communities and their size.
+
+Note to self: Check if what getGOgraph is downloading is equal to the ancestors 
+via GO.db.
 ```{r, message=FALSE}
 #get GO graph
-g <-downloadGOgraph(sig$GO.ID)
+g <- downloadGOgraph(sig$GO.ID)
 
 #run community analysis
 tmp <- collapseGraph(g)
 cg <- tmp[[1]]
 comSummary <- tmp[[2]] %>%
-    left_join(vals) %>%
-    select(-ONTOLOGY) %>%
-    setNames(c(colnames(tmp[[2]]), groupTerm))
-
-comSummary
+    left_join(select(sig, GO.ID, classicFisher), by=c("GOID" = "GO.ID"))
 ```
 
 Calculate and show the number of genes included in each community.
 ```{r}
 #calculate genes per term
-genesInTerm <- function(x) {
-    data.frame(
-        nGenes=length(
-            unlist(
-                strsplit(
-                    sig[sig$GO.ID %in% pull(x, GOID), "ID"],
-                    ", "
-                )
-            )
-        )
-    )
-}
+uCommunityNames <- unique(comSummary$communityName)
+genesPerCom <- lapply(1:length(uCommunityNames), function(x) {
+    bool <- comSummary$communityName == uCommunityNames[x]
+    idsToGet <- comSummary[bool, ]$GOID
+    genesForIdsString <- sig[sig$GO.ID %in% idsToGet, "ID"]
+    genesForIdsList <- strsplit(genesForIdsString, ", ")
+    length(unlist(genesForIdsList))
+})
+names(genesPerCom) <- uCommunityNames
 
-comSummary %>% 
-    group_by(communityName) %>%
-    do(genesInTerm(.))
+namedListToTibble(genesPerCom) %>%
+    setNames(c("communityName", "nrCommunityGenes")) %>%
+    inner_join(distinct(select(comSummary, communityName, communityTerm))) %>%
+    select(communityTerm, nrCommunityGenes, -communityName)
 ```
 
-The spin-glass algorithm detected 39 different communities, seen above.
-Calculate the authority score for all nodes and identify the node with the highest authority score per community.
-In the case that several nodes have the highest authority score per community, randomly pick one of these.
+Show the similarity between communities.
+```{r, fig.align='center', fig.height=17, fig.width=15, eval=TRUE, message=FALSE, warning=FALSE}
+cgSim <- similarity(cg, mode = "all", method = "jaccard")
+colnames(cgSim) <- unique(
+    comSummary[match(V(cg)$name, comSummary$communityID), ]$communityTerm
+)
+rownames(cgSim) <- unique(
+    comSummary[match(V(cg)$name, comSummary$communityID), ]$communityTerm
+)
+heatmap(1 - cgSim, margins = c(20,20))
+```
+
+Set attributes in the collapsed graph.
 ```{r}
+cg <- addAttributes1(cg, comSummary)
+```
 
-d %>% namedListToTibble(.) %>%
-    left_join(vals, by=c("variables" = "GOID")) %>%
-    select(-ONTOLOGY) %>%
-    setNames(., c("group", "group GO ID", "group term"))
+Add back all nodes from the original graph with the exception of the community
+nodes. Add an edge from each of the added nodes to the corresponding community
+node. Plot the final result.
 
+```{r, fig.align='center', fig.height=17, fig.width=15, eval=TRUE, message=FALSE, warning=FALSE}
+
+#add vertices and edges from uncollapsed graph
+toAdd <- comSummary %>%
+    filter(!GOID %in% communityID) %>%
+    filter(classicFisher < 0.05) %>%
+    select(GOID, communityID) %>%
+    setNames(c("from", "to"))
+
+cg <- addBackVertexAndEdges(cg, toAdd)
+
+#add attributes
+cg <- addAttributes2(cg, comSummary)
+
+#plot
+plotCollapsedGraph(cg, 10, 5)
+collapsed <- plotCollapsedGraph(cg)
+mylegend <- g_legend(collapsed)
+collapsed <- collapsed + theme(legend.position="none")
 ```

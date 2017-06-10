@@ -19,9 +19,7 @@ and collapses the graph by community using the name of the node with the
 highest authority score to name each vertex in the community.
 }
 \examples{
-terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
-g <- downloadGOgraph(terms)
-collapseGraph(g)
+#no examples yet
 
 }
 \author{
