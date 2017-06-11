@@ -1,0 +1,7 @@
+load("/Users/oliviaimner/Github/acidAdaptedRNAseq/data/topGOresult.rda")
+ls()
+topGOresult <- GO
+str(topGOresult)
+topGOresult$classicFisher <- as.numeric(topGOresult$classicFisher)
+save(topGOresult, file="~/Github/acidAdaptedRNAseq/topGOresult.rda", compress="bzip2")
+rm(list=ls())

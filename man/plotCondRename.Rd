@@ -3,6 +3,11 @@
 \name{plotCondRename}
 \alias{plotCondRename}
 \title{Rename conditions for plotting}
+\arguments{
+\item{A}{character vector of conditions to be renamed.}
+
+\item{reps}{Logical. Should the replicate label be included?}
+}
 \description{
 Rename conditions for plotting
 }

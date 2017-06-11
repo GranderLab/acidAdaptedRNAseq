@@ -9,6 +9,20 @@ output:
     theme: readable
 ---
 
+<style> 
+.col2 { 
+    columns: 2 200px; /* number of columns and width in pixels*/ 
+    -webkit-columns: 2 200px; /* chrome, safari */ 
+    -moz-columns: 2 200px; /* firefox */ 
+} 
+.caption { 
+    color: FireBrick; 
+    font-weight: bold; 
+    font-size: 0.75em; 
+}
+</style>
+
+
 ```{r libraries, message=FALSE}
 source('~/Github/diverseScripts/R/scripts/largeDivergingPalettes.R')
 library(acidAdaptedRNAseq)
@@ -24,17 +38,57 @@ library(magrittr)
 library(printr)
 ```
 
+Previously we have performed a gene ontology (GO) term enrichment analysis using 
+the differentially expressed genes (adjusted p-value < 0.05). Due to the fact 
+that many of the significant GO terms are related to similar biological 
+processes, it is desireable to facilitate the understanding of the results to 
+combine similar terms into groups, thus minimizing the number of terms to be 
+simultaniously considered. 
+
+In this analysis we use comminuty detection in order to reduce terms into groups
+but still strive to maintain the majority of the information concerning the 
+relationship of GO terms to each other. In addition, we highlight the 
+differences in gene expression between the experimental conditions in the 
+detected communities. Finally, we show the specific expression of a subset of 
+the genes in some of the GO terms in several of the communities.
 ```{r, message=FALSE}
 #load GO result and subset signignificant terms
 data(topGOresult, package = "acidAdaptedRNAseq")
 sig <- topGOresult[topGOresult$classicFisher < 0.05, ]
 ```
 
-Download the GO graph for the significant terms and run the spin-glass community
-detection algorithm. Show the number of detected communities and their size.
+To understand the relationship between the terms found to be significant in the 
+GO term enrichment analysis, we first download the GO graph for all of the terms.
+This returns a graph of all the significant terms as well as their ancestors. 
 
-Note to self: Check if what getGOgraph is downloading is equal to the ancestors 
-via GO.db.
+We then proceed to perform community detection and collapse the graph and 
+simplify the edges. For the community detection we use the spin-glass algorithm.
+From the available algorithms in the igraph package, a subset of these are not 
+appropriate for directed graphs and these were not evaluated. Those which are 
+appropriate for directed graphs were all tested and evaluated individually by a)
+the number of communities detected and b) the biological relevance of the 
+communities detected. a) was desired to be the smallest number possible without 
+have a strong negative impact on b). b) was evaluated manually by reviewing the
+GO terms present in each commuity and their biological relationship to each
+other. Although both the infomap and spinglass community detection method 
+performed well for a), it was determined that the spinglass algorithm performed
+better for b) and was therefore implemented in the analysis.
+
+A resonably detailed summary of the community detection algorithms available in 
+the igraph package can be found at:
+https://stackoverflow.com/questions/9471906/what-are-the-differences-between-community-detection-algorithms-in-igraph
+
+Collapsing the graph on communities results in each community being represented 
+by one node. Furthermore, in each detected community the node with the highest 
+authority score is determined. Due to the orientation of the graph, this node 
+represents the term in the community that has the most incomming edges, also 
+known as the node with the highest indegree, and is thus the node closest to the
+root of the graph (i.e. the "all" term). In the downstream analysis, the node 
+with the highest authority score is used to represent the community.
+In addition, in the case where there were edges between the terms now 
+located in communities, a single edge between the communities that those terms 
+are now located in, is used to represent this relationship.
+
 ```{r, message=FALSE}
 #get GO graph
 g <- downloadGOgraph(sig$GO.ID)
@@ -46,7 +100,12 @@ comSummary <- tmp[[2]] %>%
     left_join(select(sig, GO.ID, classicFisher), by=c("GOID" = "GO.ID"))
 ```
 
-Calculate and show the number of genes included in each community.
+The community detection algorithm detected a total of 39 communities. Below we 
+calculate and show the number of genes included in each community as an 
+indication of the communities information content. The results indicate that the
+smallest community is comprised of only 5 genes (lymphocyte apoptotic process) 
+whereas the largest community (cellular metabolic process) has just under 30000.
+
 ```{r, message = FALSE}
 #calculate genes per term
 uCommunityNames <- unique(comSummary$communityName)
@@ -65,7 +124,13 @@ namedListToTibble(genesPerCom) %>%
     select(communityTerm, nrCommunityGenes, -communityName)
 ```
 
-Show the similarity between communities.
+As a measure of the effectivity of the community detection we can review the 
+dissimilarity between communities by first calculating the Jaccard similarity
+between communities and then performing hierarchical clustering using 
+1-similarity. The results (below) indicate that the majority of communities have
+a reasonable level of dissimilarity with the exception of the 
+*protein refolding* and *antigen processing and presentation of exogenous...*
+community.
 ```{r, fig.align='center', fig.height=17, fig.width=15, eval=TRUE, message=FALSE, warning=FALSE}
 cgSim <- similarity(cg, mode = "all", method = "jaccard")
 colnames(cgSim) <- unique(
@@ -77,14 +142,24 @@ rownames(cgSim) <- unique(
 heatmap(1 - cgSim, margins = c(20,20))
 ```
 
-Set attributes in the collapsed graph.
 ```{r}
+#adds attributes to the collapsed graph
 cg <- addAttributes1(cg, comSummary)
 ```
 
-Add back all nodes from the original graph with the exception of the community
-nodes. Add an edge from each of the added nodes to the corresponding community
-node. Plot the final result.
+To give a graphical representation of the size of each community, we now add 
+all of the terms found to be significant in the GO term enrichment analysis 
+back to the collapsed graph. In addition, we draw an edge from each individual 
+term to the community that is is a member of. 
+
+It should be noted that now the graph only contains terms found to be 
+significant in the GO term enrichment analysis with the exception of the 
+community nodes. Due to the fact that the authority score on the whole graph 
+was used to determine the community nodes, it can be the case that the community 
+node itself was not actually found to be a significant term. Despite this, each
+of the terms in the community were significantly enriched. Therefore the
+community nodes should be viewed as a summary or label encasing the significant
+terms rather than a significant term itself (although in some cases it is).
 
 ```{r, fig.align='center', fig.height=17, fig.width=15, eval=TRUE, message=FALSE, warning=FALSE}
 #add vertices and edges from uncollapsed graph
@@ -96,19 +171,66 @@ toAdd <- comSummary %>%
 
 cg <- addBackVertexAndEdges(cg, toAdd)
 
+#add a line break in long community groups so the plot legend can be seen
+comSummary$communityTerm <- ifelse(
+    comSummary$communityTerm == "antigen processing and presentation of exogenous peptide antigen via MHC class I, TAP-independent", 
+    "antigen processing and presentation of exogenous\npeptide antigen via MHC class I, TAP-independent",
+    comSummary$communityTerm
+)
+
+comSummary$communityTerm <- ifelse(
+    comSummary$communityTerm == "somatic recombination of immunoglobulin genes involved in immune response", 
+    "somatic recombination of immunoglobulin\ngenes involved in immune response",
+    comSummary$communityTerm
+)
+
+comSummary$communityTerm <- ifelse(
+    comSummary$communityTerm == "generation of precursor metabolites and energy", 
+    "generation of precursor\nmetabolites and energy",
+    comSummary$communityTerm
+)
+
 #add attributes
 cg <- addAttributes2(cg, comSummary)
 
 #plot
-plotCollapsedGraph(cg, 10, 5)
+plotCollapsedGraph(cg, 12, 3)
 collapsed <- plotCollapsedGraph(cg)
 mylegend <- g_legend(collapsed)
-collapsed <- collapsed + theme(legend.position="none")
+collapsed <- collapsed + theme(legend.position = "none")
 ```
+<div class=caption>
+A network graph visualizing the results from the community analysis. Edge (line)
+direction is represented by color with edges originating from a node inheriting 
+that nodes color. Edges between community nodes (large points) indicate that the
+GO terms representing the nodes are each other’s ancestors or offspring 
+dependent on the direction of the edge. Edges between term nodes (small points) 
+and community nodes indicate the terms inclusion in that community. 
+</div>
 
+In summary, many of the detected communities represent processes which we would 
+expect to be differentially regulated in the experimental conditions (i.e. cell
+cycle, cell death, cell adhesion). In addition, multiple communities related
+to metabolism can be identified (i.e. cellular metabolic process, carboxylic
+acid metabolic process, lipid metabolic process).
 
-Plot a heatmap showing gene expression per community in the parental and adapted
-cell lines.
+It should be noted that some edges that could be expected may not appear. For 
+example, one may expect an edge between cell cycle and cell proliferation, due
+to the fact that they are biologically related. In this case, and potentially 
+others, the terms are actually connected via an intermediate term 
+(single-orgamism cellular process) and therefore do not have an edge directly 
+connecting the nodes. This is unfortunate for the understanding of the results 
+but has, so far, proved to be unavoidable due to the nature of the analysis.
+
+Due to the fact that the GO term enrichment analysis was performed using 
+significant (alpha < 0.05) differences in gene expression between experimental
+conditions, we would expect the gene expression in the terms found to be 
+significant (and therefore represented in the graph above) to be different. 
+Despite this, a visualization of this may help to strengthen the belief that the
+communities in the graph represent true differences in the experimental 
+conditions. To facilitate this understanding we plot the differences in 
+each experimental condition per community below.
+
 ```{r, fig.align='center', fig.height=17, fig.width=15, eval=TRUE, message=FALSE, warning=FALSE}
 #extract all gene IDs per GO term
 genePerTerm <- extractGenesFromGO()
@@ -133,14 +255,25 @@ order <- clusterForOrder(heatmap)
 #merge order into summary
 heatmap <- left_join(heatmap, order, by = c("communityName", "ID"))
 
-
 #plot
-heatmap$plotCondition <- plotCondRename(heatmap)
+heatmap$plotCondition <- plotCondRename(heatmap$condition)
 heatmap <- plotHeatmap(heatmap)
 ```
 
-Highlight differential gene expression in communities and terms by plotting the expression levels in parental and adapted cell lines.
-```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+<div class=caption>
+A heatmap representing gene expression profiles in the detected communities. 
+Communities are indicated by the color bar on the right side of the heatmap. 
+Z-score indicates the regularized log transformed expression values scaled 
+between 0 and 1.
+</div>
+
+Finally, we wish to highlight genes which would be expected to be disregulated
+in the experimental model and their location in the community graph. To do this,
+we extract the expression values for individual genes and plot them in each 
+experimental condition while connecting them each back to the term and community
+they are located in.
+
+```{r}
 #setup rld expression values for merge
 rld <- deResultsRld %>%
     as.data.frame() %>%
@@ -149,14 +282,20 @@ rld <- deResultsRld %>%
     as_tibble() %>%
     gather(condition, expression, -ID)
 
+#set up gene p-values for merge
+ps <- deResults %>%
+    select(ID, padj) %>%
+    as_tibble()
+
 #setup data for plot
 barDat <- comSummary %>%
     filter(!is.na(classicFisher)) %>%
     full_join(genePerTerm, by = "GOID") %>%
     left_join(rld, by = "ID") %>%
-    left_join(geneAnnotation, by = "ID")
+    left_join(geneAnnotation, by = "ID") %>%
+    left_join(ps, by="ID")
 
-barDat$plotCondition <- plotCondRename(barDat)
+barDat$plotCondition <- plotCondRename(barDat$condition, reps = FALSE)
 
 #Specify terms to plot
 terms <- c(
@@ -169,17 +308,65 @@ terms <- c(
     "cell cycle",
     "cell proliferation"
 )
+```
 
+<div class=col2>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
 #plot for rmarkdown
 plotGenes(barDat, terms[1])
-plotGenes(barDat, terms[2])
-plotGenes(barDat, terms[3])
-plotGenes(barDat, terms[4])
-plotGenes(barDat, terms[5])
-plotGenes(barDat, terms[6])
-plotGenes(barDat, terms[7])
-plotGenes(barDat, terms[8])
+```
 
+<br></br>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+plotGenes(barDat, terms[2])
+```
+
+<br></br>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+plotGenes(barDat, terms[3])
+```
+
+<br></br>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+plotGenes(barDat, terms[4])
+```
+
+<br></br>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+plotGenes(barDat, terms[5])
+```
+
+<br></br>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+plotGenes(barDat, terms[6])
+```
+
+<br></br>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+plotGenes(barDat, terms[7])
+```
+
+<br></br>
+
+```{r, fig.align='center', fig.height=8, fig.width=7, eval=TRUE, message=FALSE, warning=FALSE}
+plotGenes(barDat, terms[8])
+```
+
+<br></br>
+</div>
+<div class=caption>
+Gene expression profiles for selected terms in a subset of the detected 
+communities for parental and acid adapted cells.
+</div>
+
+```{r, message=FALSE}
 #plot for figure
 p1 <- plotGenes(barDat, terms[1]) 
 mylegend2 <- g_legend(p1)
@@ -213,16 +400,23 @@ figure1 %<>% fill_panel(p5, column = 4, row = 1, label = "G")
 figure1 %<>% fill_panel(p6, column = 4, row = 2, label = "H")
 figure1 %<>% fill_panel(p7, column = 4, row = 3, label = "I")
 figure1 %<>% fill_panel(p8, column = 4, row = 4, label = "J")
-
 #figure1
 
 #save final figure
 ggsave(
     plot = figure1, 
-    '~/Github/DeMilitoRNAseq-analysis/inst/DeMilitoGO/figure.pdf', 
+    '~/Github/acidAdaptedRNAseq/inst/GOanalysis/figure.pdf', 
     width = 550, 
     height = 350, 
     units = "mm", 
     limitsize = FALSE
 )
+ggsave(
+    plot = mylegend2, 
+    '~/Github/acidAdaptedRNAseq/inst/GOanalysis/legend.pdf'
+)
+```
+
+```{r}
+sessionInfo()
 ```

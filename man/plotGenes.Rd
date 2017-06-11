@@ -3,6 +3,13 @@
 \name{plotGenes}
 \alias{plotGenes}
 \title{Plot genes in community terms.}
+\arguments{
+\item{data}{The plot data.}
+
+\item{term}{The term to plot.}
+
+\item{n}{The number of genes to plot.}
+}
 \description{
 Plot genes in community terms.
 }

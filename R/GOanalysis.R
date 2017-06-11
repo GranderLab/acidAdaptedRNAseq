@@ -646,26 +646,45 @@ plotHeatmap <- function(comSummary) {
 #' @rdname plotCondRename
 #' @author Jason T. Serviss
 #' @keywords plotCondRename
+#' @param A character vector of conditions to be renamed.
+#' @param reps Logical. Should the replicate label be included?
 #' @examples
 #' #no example yet
 #'
 #' @export
+#' @importFrom dplyr case_when
 NULL
 
-plotCondRename <- function(data) {
-    plotCondition <- ifelse2(
-        if2(data$condition == "HCT116.parentalA", "Parental\nrep. 1"),
-        if2(data$condition == "HCT116.parentalB", "Parental\nrep. 2"),
-        if2(data$condition == "HCT116.parentalC", "Parental\nrep. 3"),
-        if2(data$condition == "HCT116.adaptedA",  "Adapted\nrep. 1"),
-        if2(data$condition == "HCT116.adaptedB",  "Adapted\nrep. 2"),
-        else2("Adapted\nrep. 3")
-    )
+plotCondRename <- function(condition, reps = TRUE) {
     
-    labels <- c("Parental\nrep. 1", "Parental\nrep. 2", "Parental\nrep. 3",
-                "Adapted\nrep. 1", "Adapted\nrep. 2", "Adapted\nrep. 3")
+    if(reps) {
+        plotCondition <- case_when(
+            condition == "HCT116.parentalA" ~ "Parental\nrep. 1",
+            condition == "HCT116.parentalB" ~ "Parental\nrep. 2",
+            condition == "HCT116.parentalC" ~ "Parental\nrep. 3",
+            condition == "HCT116.adaptedA"  ~ "Adapted\nrep. 1",
+            condition == "HCT116.adaptedB"  ~ "Adapted\nrep. 2",
+            condition == "HCT116.adaptedC"  ~ "Adapted\nrep. 3"
+        )
+    
+        labels <- c(
+            "Parental\nrep. 1", "Parental\nrep. 2", "Parental\nrep. 3",
+            "Adapted\nrep. 1", "Adapted\nrep. 2", "Adapted\nrep. 3"
+        )
 
-    factor(plotCondition, levels=labels)
+        factor(plotCondition, levels=labels)
+    } else {
+        plotCondition <- case_when(
+            condition == "HCT116.parentalA" ~ "Parental",
+            condition == "HCT116.parentalB" ~ "Parental",
+            condition == "HCT116.parentalC" ~ "Parental",
+            condition == "HCT116.adaptedA"  ~ "Adapted",
+            condition == "HCT116.adaptedB"  ~ "Adapted",
+            condition == "HCT116.adaptedC"  ~ "Adapted"
+        )
+        
+        factor(plotCondition, levels=c("Parental", "Adapted"))
+    }
 }
 
 #' Plot genes in community terms.
@@ -675,6 +694,9 @@ plotCondRename <- function(data) {
 #' @rdname plotGenes
 #' @author Jason T. Serviss
 #' @keywords plotGenes
+#' @param data The plot data.
+#' @param term The term to plot.
+#' @param n The number of genes to plot.
 #' @examples
 #' #no example yet
 #'
@@ -684,7 +706,7 @@ plotCondRename <- function(data) {
 #' @importFrom ggthemes theme_few scale_colour_economist
 NULL
 
-plotGenes <- function(data, term, n=6){
+plotGenes <- function(data, term, n=10){
     p1 <- data %>%
         filter(Term == term) %>%
         arrange(padj) %>%
