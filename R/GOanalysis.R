@@ -487,3 +487,244 @@ plotCollapsedGraph <- function(cg, legend.nrow=8, legend.points=7) {
     collapsed
     return(collapsed)
 }
+
+#' extractGenesFromGO
+#'
+#' Extracts Ensembl IDs from the topGOresult and returns them in a long
+#' data frame.
+#'
+#' @name extractGenesFromGO
+#' @rdname extractGenesFromGO
+#' @author Jason T. Serviss
+#' @keywords extractGenesFromGO
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @importFrom magrittr %>%
+NULL
+
+extractGenesFromGO <- function() {
+    sig <- topGOresult[topGOresult$classicFisher < 0.05, ]
+    genePerTerm <- lapply(1:nrow(sig), function(x) {
+        strsplit(sig[x, "ID"], ", ")[[1]]
+    })
+    names(genePerTerm) <- sig$GO.ID
+    namedListToTibble(genePerTerm) %>%
+        setNames(c("GOID", "ID"))
+}
+
+#' calculateZscore
+#'
+#' Calculates the z-score, i.e. scales the expression per gene to a range
+#' of 0 to 1 using \code{\link{deResultsRld}}.
+#'
+#' @name calculateZscore
+#' @rdname calculateZscore
+#' @author Jason T. Serviss
+#' @keywords calculateZscore
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @importFrom magrittr %>%
+#' @importFrom tibble rownames_to_column as_tibble
+#' @importFrom dplyr rename
+NULL
+
+calculateZscore <- function() {
+    t(apply(deResultsRld, 1, function(x)
+        (x-min(x))/(max(x)-min(x))
+    )) %>%
+        as.data.frame() %>%
+        rownames_to_column() %>%
+        as_tibble() %>%
+        rename(ID = rowname)
+}
+
+#' clusterForOrder
+#'
+#' Performs a hierarchical clustering per variable and extracts the ordering.
+#'
+#' @name clusterForOrder
+#' @rdname clusterForOrder
+#' @author Jason T. Serviss
+#' @keywords clusterForOrder
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @importFrom magrittr %>%
+NULL
+
+clusterForOrder <- function(data){
+    coms <- unique(data$communityName)
+    order <- lapply(1:length(coms), function(x) {
+        values <- data[data$communityName == coms[x], ]$ID
+        currExp <- deResultsRld[rownames(deResultsRld) %in% values, ]
+        clust <- hclust(as.dist(1-cor(t(currExp))))
+        ord <- clust[[4]][clust[[3]]]
+        names(ord) <- 1:length(ord)
+        ord
+    })
+    names(order) <- coms
+    namedListToTibble(order) %>%
+        rename(communityName = names, order = inner.names, ID = variables) %>%
+        mutate(order = as.numeric(order))
+}
+
+#' plotHeatmap
+#'
+#' Plots the community heatmap.
+#'
+#' @name plotHeatmap
+#' @rdname plotHeatmap
+#' @author Jason T. Serviss
+#' @keywords plotHeatmap
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @import ggplot2
+#' @importFrom ggthemes theme_few
+#' @importFrom grid grid.newpage grid.draw
+NULL
+
+plotHeatmap <- function(comSummary) {
+    p <- ggplot(comSummary, aes(plotCondition, order)) +
+    geom_tile(aes(fill = zScore)) +
+    facet_grid(
+        communityName~.,
+        scales="free_y",
+        labeller = as_labeller(function(x) {rep("", length(x))})
+    )+
+    scale_fill_viridis() +
+    ggthemes::theme_few() +
+    theme(
+        strip.text.y = element_text(angle=0),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(size=9),
+        axis.ticks.y = element_blank(),
+        legend.position = "top"
+    ) +
+    guides(
+        fill = guide_colorbar(
+        title = "z-score",
+        title.position = "bottom",
+        title.hjust = 0.5,
+        barwidth = 10
+    )
+    )+
+        labs(
+        x = "Condition",
+        y = "Significant genes in community terms"
+    )
+    
+    #hack the facet_labels to fill the same as the network plot
+    heatmap <- ggplotGrob(p)
+    fixedCols <- col64()[c(3:8, 10:18, 20:31, 35, 37, 40, 42:47, 49:60)]
+
+    idx <- 0
+    for( g in 1:length(heatmap$grobs) ){
+        if( grepl( "strip" , heatmap$grobs[[g]]$name ) ){
+            idx <- idx + 1
+            heatmap$grobs[[g]]$grobs[[1]][['children']][[1]][['gp']]$fill <-
+            fixedCols[idx]
+            
+        }
+    }
+    
+    grid.newpage()
+    grid.draw(heatmap)
+    return(heatmap)
+}
+
+#' Rename conditions for plotting
+#'
+#'
+#' @name plotCondRename
+#' @rdname plotCondRename
+#' @author Jason T. Serviss
+#' @keywords plotCondRename
+#' @examples
+#' #no example yet
+#'
+#' @export
+NULL
+
+plotCondRename <- function(data) {
+    plotCondition <- ifelse2(
+        if2(data$condition == "HCT116.parentalA", "Parental\nrep. 1"),
+        if2(data$condition == "HCT116.parentalB", "Parental\nrep. 2"),
+        if2(data$condition == "HCT116.parentalC", "Parental\nrep. 3"),
+        if2(data$condition == "HCT116.adaptedA",  "Adapted\nrep. 1"),
+        if2(data$condition == "HCT116.adaptedB",  "Adapted\nrep. 2"),
+        else2("Adapted\nrep. 3")
+    )
+    
+    labels <- c("Parental\nrep. 1", "Parental\nrep. 2", "Parental\nrep. 3",
+                "Adapted\nrep. 1", "Adapted\nrep. 2", "Adapted\nrep. 3")
+
+    factor(plotCondition, levels=labels)
+}
+
+#' Plot genes in community terms.
+#'
+#'
+#' @name plotGenes
+#' @rdname plotGenes
+#' @author Jason T. Serviss
+#' @keywords plotGenes
+#' @examples
+#' #no example yet
+#'
+#' @export
+#' @importFrom dplyr filter arrange
+#' @importFrom magrittr %>%
+#' @importFrom ggthemes theme_few scale_colour_economist
+NULL
+
+plotGenes <- function(data, term, n=6){
+    p1 <- data %>%
+        filter(Term == term) %>%
+        arrange(padj) %>%
+        head(n=(n*6)) %>%
+        arrange(geneName)
+    
+    p <- ggplot(p1, aes(geneName, expression)) +
+    geom_jitter(
+        aes(colour = plotCondition),
+        alpha = 0.75,
+        width = 0.2,
+        height = 0,
+        size = 1
+    ) +
+    theme_few() +
+    scale_colour_economist(
+        labels = c("Adapted", "Parental")
+    ) +
+    theme(
+        axis.text.x = element_text(angle=90, size=8),
+        axis.text.y = element_text(size=8),
+        legend.position = "top",
+        legend.text = element_text(size=8),
+        legend.title = element_text(size=10),
+        plot.title = element_text(size=10, face="bold"),
+        plot.subtitle = element_text(size=10)
+    ) +
+    labs(
+        x = "Gene",
+        y = "log2(Normalized counts)",
+        title = paste("Community: ", unique(p1$communityTerm), sep = ""),
+        subtitle = paste("Term: ", unique(p1$Term), sep = "")
+    ) +
+    guides(
+        colour = guide_legend(
+            title = "Condition",
+            override.aes = list(size=2)
+        )
+    )
+    
+    p
+    return(p)
+}
