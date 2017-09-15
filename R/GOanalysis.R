@@ -534,7 +534,7 @@ NULL
 
 calculateZscore <- function() {
     t(apply(deResultsRld, 1, function(x)
-        (x-min(x))/(max(x)-min(x))
+        (x - min(x)) / (max(x) - min(x))
     )) %>%
         as.data.frame() %>%
         rownames_to_column() %>%
