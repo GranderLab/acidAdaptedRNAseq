@@ -167,6 +167,23 @@ PCvar <- function(x) {
     return(p)
 }
 
+#' TSNE
+#'
+#' Runs t-SNE and plots the results.
+#'
+#' This function runs t-SNE for all samples and the specified genes using
+#' 1-Pearson's correlation as input to the t-SNE algorithm and plots the results.
+#'
+#' @name TSNE
+#' @rdname TSNE
+#' @author Jason T. Serviss
+#' @param ntop The number of genes to include in t-SNE ranked by their variance.
+#' @examples
+#' TSNE()
+#'
+NULL
+
+#' @export
 #' @importFrom Rtsne Rtsne
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr rename mutate
@@ -175,6 +192,7 @@ PCvar <- function(x) {
 #' @importFrom ggthemes theme_few scale_colour_ptol
 #' @importFrom stats var
 #' @importFrom magrittr "%>%"
+
 TSNE <- function(nTop = 500) {
   x <- deResultsRld
   
