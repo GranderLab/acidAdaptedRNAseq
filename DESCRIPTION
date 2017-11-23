@@ -1,34 +1,39 @@
 Package: acidAdaptedRNAseq
 Title: Analysis of RNAseq data for DeMilito lab
 Version: 0.0.0.9000
-Authors@R: person("Jason", "Serviss", , "jason.serviss@ki.se", role = c("aut", "cre"))
-Description: This package reproduces the analysis of the RNAseq analysis and the figures produced from that data.
+Authors@R: person("Jason", "Serviss", email = "Jason.serviss@ki.se", role = c("aut", "cre"), comment = c(ORCID = 0000-0002-5778-7014))
+Description: This package reproduces the RNAseq and gene ontology analysis and the figures produced from that data.
 Depends:
-    R (>= 3.4.1)
+    R (>= 3.4.2)
 Imports:
-    plotly,
-    RColorBrewer,
-    car,
-    rgl,
-    ggplot2,
-    ggthemes,
-    tibble,
-    dplyr,
-    topGO,
-    biomaRt,
-    mygene,
-    org.Hs.eg.db,
-    GOSim,
-    igraph,
-    magrittr,
-    methods,
-    AnnotationDbi,
-    GO.db
+  Rtsne (>= 0.13),
+  ggplot2 (>= 2.2.1),
+  ggthemes (>= 3.4.0),
+  tibble (>= 1.3.4),
+  dplyr (>= 0.7.4),
+  stringr (>= 1.2.0),
+  liftr (>= 0.7),
+  topGO (>= 2.30.0),
+  biomaRt (>= 2.34.0),
+  GOSim (>= 1.14.0),
+  igraph (>= 1.0.1),
+  ggraph (>= 1.0.0),
+  magrittr (>= 1.5),
+  AnnotationDbi (>= 1.38.1),
+  GO.db (>= 3.4.1),
+  purrr (>= 0.2.4),
+  methods,
+  tools
 Suggests:
-    RSQLite,
-    knitr,
-    rmarkdown,
-    testthat
+  knitr (>= 1.17),
+  rmarkdown (>= 1.6),
+  testthat (>= 1.0.2),
+  multipanelfigure (>= 0.9.0),
+  gtable (>= 0.2.0),
+  printr(>= 0.1)
+SystemRequirements: 
+  docker
+  imagemagick
 License: GPL-3
 LazyData: true
 RoxygenNote: 6.0.1

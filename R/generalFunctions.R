@@ -22,14 +22,14 @@ namedListToTibble <- function(l) {
     if (!is.null(names(l[[1]]))) {
         ni <- gsub(".*\\.(.*)$", "\\1", names(unlist(l)))
         n <- rep(names(l), lengths(l))
-        tibble::tibble(
+        tibble(
             names = n,
             inner.names = ni,
             variables = unname(unlist(l))
         )
     } else {
         n <- rep(names(l), lengths(l))
-        tibble::tibble(
+        tibble(
             names = n,
             variables = unname(unlist(l))
         )
@@ -52,7 +52,7 @@ namedListToTibble <- function(l) {
 #' @import GO.db
 
 getGO.db <- function() {
-    select(GO.db, keys(GO.db, "GOID"), c("TERM", "ONTOLOGY"))
+  AnnotationDbi::select(GO.db, keys(GO.db, "GOID"), c("TERM", "ONTOLOGY"))
 }
 
 #' col64

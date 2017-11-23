@@ -1,0 +1,28 @@
+maintainer: "Jason Serviss"
+email: "jason.serviss@ki.se"
+from: "rocker/tidyverse:3.4.0"
+pandoc: false
+cran:
+  - Rtsne/0.13
+  - ggthemes/3.4.0
+  - liftr/0.7
+  - igraph/1.0.1
+  - magrittr/1.5
+  - knitr/1.17
+  - rmarkdown/1.6
+  - testthat/1.0.2
+  - multipanelfigure/0.9.0
+  - gtable/0.2.0
+  - ggraph/1.0.0
+  - printr/0.1
+bioc:
+  - topGO/2.30.0
+  - biomaRt/2.34.0
+  - GOSim/1.14.0
+  - AnnotationDbi/1.38.1
+  - GO.db/3.4.1
+remotes:
+  - "jasonserviss/acidAdaptedRNAseq"
+sysdeps:
+  - imagemagick
+  - libudunits2-dev

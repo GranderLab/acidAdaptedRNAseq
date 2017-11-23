@@ -1,0 +1,8 @@
+---
+title: "Dummy"
+output: html_document
+---
+
+```{r}
+print("running dummy .rmd")
+```

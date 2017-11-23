@@ -181,7 +181,13 @@ runTopGO <- function(save=FALSE) {
 NULL
 
 downloadGOgraph <- function(terms) {
-    igraph.from.graphNEL(getGOGraph(terms))
+    g <- igraph.from.graphNEL(getGOGraph(terms))
+    .delete.isolates(g, mode = 'all')
+}
+
+.delete.isolates <- function(graph, mode = 'all') {
+  isolates <- which(degree(graph, mode = mode) == 0) - 1
+  delete.vertices(graph, isolates)
 }
 
 #' collapseGraph
@@ -207,7 +213,7 @@ downloadGOgraph <- function(terms) {
 #'    membership simplify
 #' @importFrom tibble tibble rownames_to_column add_column
 #' @importFrom stats setNames
-#' @importFrom dplyr left_join pull select_ mutate n
+#' @importFrom dplyr left_join pull select mutate n
 #' @importFrom magrittr %>%
 NULL
 
@@ -215,7 +221,7 @@ collapseGraph <- function(g, spins = 200) {
     
     #run community analysis
     set.seed(1998)
-    spinglass <- cluster_spinglass(g, spins = 200)
+    spinglass <- cluster_spinglass(g, spins = spins)
     
     #calculate the authority score for each vertex in the graph
     as <- authority_score(g)$vector
@@ -231,7 +237,6 @@ collapseGraph <- function(g, spins = 200) {
 }
 
 #determines the vertex with the highest authority score per community
-
 maxAuth <- function(x, as) {
     curr <- as[names(as) %in% x]
     names(curr)[curr == max(curr)][1]
@@ -290,19 +295,19 @@ maxAuth <- function(x, as) {
         left_join(as, by = c("variables" = "vertex")) %>%
         left_join(comID, by = c("names" = "communityName")) %>%
         left_join(vals, by = c("variables" = "GOID")) %>%
-        select_(~-ONTOLOGY) %>%
+        select(-ONTOLOGY) %>%
         left_join(vals, by = c("communityID" = "GOID")) %>%
-        select_(~-ONTOLOGY) %>%
+        select(-ONTOLOGY) %>%
         add_column(size = spinglass$csize[as.numeric(pull(., names))]) %>%
         setNames(summaryNames) %>%
-        select_(
-            ~communityName,
-            ~communityID,
-            ~communitySize,
-            ~communityTerm,
-            ~GOID,
-            ~authority.score,
-            ~Term
+        select(
+            communityName,
+            communityID,
+            communitySize,
+            communityTerm,
+            GOID,
+            authority.score,
+            Term
       )
     
     return(summary)
@@ -599,7 +604,7 @@ plotHeatmap <- function(comSummary) {
         labeller = as_labeller(function(x) {rep("", length(x))})
     )+
     scale_fill_viridis() +
-    ggthemes::theme_few() +
+    theme_few() +
     theme(
         strip.text.y = element_text(angle=0),
         axis.text.y = element_blank(),
