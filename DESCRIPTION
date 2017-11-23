@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R: person("Jason", "Serviss", email = "Jason.serviss@ki.se", role = c("aut", "cre"), comment = c(ORCID = 0000-0002-5778-7014))
 Description: This package reproduces the RNAseq and gene ontology analysis and the figures produced from that data.
 Depends:
-    R (>= 3.4.2)
+    R (>= 3.4.0)
 Imports:
   Rtsne (>= 0.13),
   ggplot2 (>= 2.2.1),
