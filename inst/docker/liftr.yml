@@ -33,6 +33,6 @@ cran:
   - dplyr/0.7.4
   - stringr/1.2.0
   - purrr/0.2.4
-  -tidyr/0.7.2
+  - tidyr/0.7.2
 remotes:
   - "jasonserviss/acidAdaptedRNAseq"
