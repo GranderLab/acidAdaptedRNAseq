@@ -1,10 +1,20 @@
 maintainer: "Jason Serviss"
 email: "jason.serviss@ki.se"
-from: "rocker/tidyverse:3.4.0"
+from: "bioconductor/release_base2:R3.4.0_Bioc3.5"
 pandoc: false
 sysdeps:
   - imagemagick
   - libudunits2-dev
+  - librsvg2-dev
+  - pkg-config
+  - libjpeg-dev
+  - libtiff5-dev
+bioc:
+  - topGO
+  - biomaRt
+  - GOSim
+  - AnnotationDbi
+  - GO.db
 cran:
   - Rtsne/0.13
   - ggthemes/3.4.0
@@ -18,11 +28,10 @@ cran:
   - gtable/0.2.0
   - ggraph/1.0.0
   - printr/0.1
-bioc:
-  - topGO/2.30.0
-  - biomaRt/2.34.0
-  - GOSim/1.14.0
-  - AnnotationDbi/1.38.1
-  - GO.db/3.4.1
+  - ggplot2/2.2.1
+  - tibble/1.3.4
+  - dplyr/0.7.4
+  - stringr/1.2.0
+  - purrr/0.2.4
 remotes:
   - "jasonserviss/acidAdaptedRNAseq"

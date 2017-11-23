@@ -13,7 +13,7 @@ Imports:
   dplyr (>= 0.7.4),
   stringr (>= 1.2.0),
   liftr (>= 0.7),
-  topGO (>= 2.30.0),
+  topGO (>= 2.28.0),
   biomaRt (>= 2.34.0),
   GOSim (>= 1.14.0),
   igraph (>= 1.0.1),
