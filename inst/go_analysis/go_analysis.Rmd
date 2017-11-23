@@ -39,7 +39,8 @@ packages <- c(
   "tibble",
   "dplyr",
   "stringr",
-  "purrr"
+  "purrr",
+  "tidyr"
 )
 purrr::walk(packages, library, character.only = TRUE)
 rm(packages)
