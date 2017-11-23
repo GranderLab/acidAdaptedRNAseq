@@ -167,6 +167,45 @@ PCvar <- function(x) {
     return(p)
 }
 
+#' @importFrom Rtsne Rtsne
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr rename mutate
+#' @importFrom stringr str_sub
+#' @import ggplot2
+#' @importFrom ggthemes theme_few scale_colour_ptol
+#' @importFrom stats var
+#' @importFrom magrittr "%>%"
+TSNE <- function(nTop = 500) {
+  x <- deResultsRld
+  
+  #select top genes
+  rv <- apply(x, 1, var)
+  select <- order(rv, decreasing = TRUE)[seq_len(min(ntop, length(rv)))]
+  
+  #calculate 1-Pearson's correlation
+  d <- as.dist(1-cor(x[select, ], method = "p"))
+  
+  #run tsne, fix labels, and plot
+  as.data.frame(Rtsne(d, is_distance = TRUE, perplexity = 1)$Y) %>%
+  as_tibble() %>%
+  rename(dim1 = V1, dim2 = V2) %>%
+  mutate(samples = gsub("\\.", " ", colnames(x))) %>%
+  mutate(samples = gsub("(.*)(.)$", "\\1 \\2", samples)) %>%
+  mutate(samples = case_when(
+    str_sub(samples, start = -1) == "A" ~ gsub("(.*).$", "\\1rep 1", samples),
+    str_sub(samples, start = -1) == "B" ~ gsub("(.*).$", "\\1rep 2", samples),
+    str_sub(samples, start = -1) == "C" ~ gsub("(.*).$", "\\1rep 3", samples),
+    TRUE ~ "error"
+  )) %>%
+  mutate(group = gsub("(.*).{6}$", "\\1", samples)) %>%
+  ggplot(aes_string('dim1', 'dim2', 'colour = group')) +
+    geom_point(size = 3, alpha = 0.7) +
+    theme_few() +
+    scale_colour_ptol() +
+    theme(legend.position = "top") +
+    guides(colour = guide_legend(title = "Condition"))
+}
+
 #' MAplot
 #'
 #' Plot an MA plot (log 2 average expression vs. log2 fold change) using the
@@ -182,16 +221,16 @@ PCvar <- function(x) {
 #'
 #' @export
 #' @importFrom tibble as_tibble
-#' @importFrom dplyr select_
+#' @importFrom dplyr select
 #' @import ggplot2
 #' @importFrom ggthemes theme_few
-#' @importFrom magrittr %>%
+#' @importFrom magrittr "%>%"
 NULL
 
 MAplot <- function() {
     data <- deResults %>%
         as_tibble() %>%
-        select_(~baseMean, ~log2FoldChange)
+        select(~baseMean, ~log2FoldChange)
     
     p <- ggplot(data, aes_string('log2(baseMean)', 'log2FoldChange'))+
         geom_point(alpha = 0.1)+
@@ -238,7 +277,7 @@ MAplot <- function() {
 #' @importFrom magrittr %>%
 NULL
 
-volcanoPlot <- function(n=5) {
+volcanoPlot <- function(n = 5) {
     data <- deResults %>%
         as_tibble() %>%
         filter_(~padj < 0.05) %>%
