@@ -482,12 +482,12 @@ plotCollapsedGraph <- function(cg, legend.nrow=8, legend.points=7) {
                 title.position = "top",
                 override.aes = list(size = legend.points)
             ),
-        edge_colour=FALSE,
-        edge_alpha=FALSE,
-        size=FALSE
+        edge_colour = FALSE,
+        edge_alpha = FALSE,
+        size = FALSE
     ) +
-    scale_colour_manual(values=fixedCols) +
-    scale_edge_color_manual(values=fixedCols)
+    scale_colour_manual(values = fixedCols) +
+    scale_edge_color_manual(values = fixedCols)
     
     collapsed
     return(collapsed)
@@ -567,7 +567,7 @@ clusterForOrder <- function(data){
     order <- lapply(1:length(coms), function(x) {
         values <- data[data$communityName == coms[x], ]$ID
         currExp <- deResultsRld[rownames(deResultsRld) %in% values, ]
-        clust <- hclust(as.dist(1-cor(t(currExp))))
+        clust <- hclust(as.dist(1 - cor(t(currExp))))
         ord <- clust[[4]][clust[[3]]]
         names(ord) <- 1:length(ord)
         ord
@@ -599,7 +599,7 @@ plotHeatmap <- function(comSummary) {
     p <- ggplot(comSummary, aes(plotCondition, order)) +
     geom_tile(aes(fill = zScore)) +
     facet_grid(
-        communityName~.,
+        communityName ~ .,
         scales="free_y",
         labeller = as_labeller(function(x) {rep("", length(x))})
     )+
@@ -664,31 +664,31 @@ plotCondRename <- function(condition, reps = TRUE) {
     
     if(reps) {
         plotCondition <- case_when(
-            condition == "HCT116.parentalA" ~ "Parental\nrep. 1",
-            condition == "HCT116.parentalB" ~ "Parental\nrep. 2",
-            condition == "HCT116.parentalC" ~ "Parental\nrep. 3",
-            condition == "HCT116.adaptedA"  ~ "Adapted\nrep. 1",
-            condition == "HCT116.adaptedB"  ~ "Adapted\nrep. 2",
-            condition == "HCT116.adaptedC"  ~ "Adapted\nrep. 3"
+            condition == "HCT116.parentalA" ~ "pH 7.4\nrep. 1",
+            condition == "HCT116.parentalB" ~ "pH 7.4\nrep. 2",
+            condition == "HCT116.parentalC" ~ "pH 7.4\nrep. 3",
+            condition == "HCT116.adaptedA"  ~ "pH 6.8\nrep. 1",
+            condition == "HCT116.adaptedB"  ~ "pH 6.8\nrep. 2",
+            condition == "HCT116.adaptedC"  ~ "pH 6.8\nrep. 3"
         )
     
         labels <- c(
-            "Parental\nrep. 1", "Parental\nrep. 2", "Parental\nrep. 3",
-            "Adapted\nrep. 1", "Adapted\nrep. 2", "Adapted\nrep. 3"
+            "pH 7.4\nrep. 1", "pH 7.4\nrep. 2", "pH 7.4\nrep. 3",
+            "pH 6.8\nrep. 1", "pH 6.8\nrep. 2", "pH 6.8\nrep. 3"
         )
 
-        factor(plotCondition, levels=labels)
+        factor(plotCondition, levels = labels)
     } else {
         plotCondition <- case_when(
-            condition == "HCT116.parentalA" ~ "Parental",
-            condition == "HCT116.parentalB" ~ "Parental",
-            condition == "HCT116.parentalC" ~ "Parental",
-            condition == "HCT116.adaptedA"  ~ "Adapted",
-            condition == "HCT116.adaptedB"  ~ "Adapted",
-            condition == "HCT116.adaptedC"  ~ "Adapted"
+            condition == "HCT116.parentalA" ~ "pH 7.4",
+            condition == "HCT116.parentalB" ~ "pH 7.4",
+            condition == "HCT116.parentalC" ~ "pH 7.4",
+            condition == "HCT116.adaptedA"  ~ "pH 6.8",
+            condition == "HCT116.adaptedB"  ~ "pH 6.8",
+            condition == "HCT116.adaptedC"  ~ "pH 6.8"
         )
         
-        factor(plotCondition, levels=c("Parental", "Adapted"))
+        factor(plotCondition, levels = c("pH 7.4", "pH 6.8"))
     }
 }
 
@@ -711,11 +711,11 @@ plotCondRename <- function(condition, reps = TRUE) {
 #' @importFrom ggthemes theme_few scale_colour_economist
 NULL
 
-plotGenes <- function(data, term, n=10){
+plotGenes <- function(data, term, n = 10){
     p1 <- data %>%
         filter(Term == term) %>%
         arrange(padj) %>%
-        head(n=(n*6)) %>%
+        head(n = (n * 6)) %>%
         arrange(geneName)
     
     p <- ggplot(p1, aes(geneName, expression)) +
@@ -731,13 +731,13 @@ plotGenes <- function(data, term, n=10){
         labels = c("Adapted", "Parental")
     ) +
     theme(
-        axis.text.x = element_text(angle=90, size=8),
-        axis.text.y = element_text(size=8),
+        axis.text.x = element_text(angle = 90, size = 8),
+        axis.text.y = element_text(size = 8),
         legend.position = "top",
-        legend.text = element_text(size=8),
-        legend.title = element_text(size=10),
-        plot.title = element_text(size=10, face="bold"),
-        plot.subtitle = element_text(size=10)
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10),
+        plot.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 10)
     ) +
     labs(
         x = "Gene",
@@ -748,7 +748,7 @@ plotGenes <- function(data, term, n=10){
     guides(
         colour = guide_legend(
             title = "Condition",
-            override.aes = list(size=2)
+            override.aes = list(size = 2)
         )
     )
     
