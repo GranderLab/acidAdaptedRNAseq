@@ -22,6 +22,7 @@ Imports:
   AnnotationDbi (>= 1.38.2),
   GO.db (>= 3.4.1),
   purrr (>= 0.2.4),
+  tidyr (>= 0.7.2),
   methods,
   tools
 Suggests:

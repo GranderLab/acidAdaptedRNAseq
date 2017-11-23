@@ -29,13 +29,17 @@ packages <- c(
   "GO.db",
   "GOSim",
   "igraph",
-  "tidyverse",
+  "ggplot2",
   "ggraph",
   "multipanelfigure",
   "grid",
   "gtable",
   "magrittr",
-  "printr"
+  "printr",
+  "tibble",
+  "dplyr",
+  "stringr",
+  "purrr"
 )
 purrr::walk(packages, library, character.only = TRUE)
 rm(packages)
