@@ -2,6 +2,9 @@ maintainer: "Jason Serviss"
 email: "jason.serviss@ki.se"
 from: "rocker/tidyverse:3.4.0"
 pandoc: false
+sysdeps:
+  - imagemagick
+  - libudunits2-dev
 cran:
   - Rtsne/0.13
   - ggthemes/3.4.0
@@ -23,6 +26,3 @@ bioc:
   - GO.db/3.4.1
 remotes:
   - "jasonserviss/acidAdaptedRNAseq"
-sysdeps:
-  - imagemagick
-  - libudunits2-dev
