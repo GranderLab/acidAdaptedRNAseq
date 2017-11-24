@@ -1,20 +1,25 @@
 
 getAnnotation <- function() {
+  tmp <- tempdir()
+  
     sCmd1 <- paste(
-        "wget",
+        "wget ",
         "ftp://ftp.ensembl.org/",
         "pub/release-73/gtf/homo_sapiens/Homo_sapiens.GRCh37.73.gtf.gz ",
-        "-O ./inst/tmp/Homo_sapiens.GRCh37.73.gtf.gz",
+        "-O ", tmp, "/Homo_sapiens.GRCh37.73.gtf.gz",
         sep = ""
     )
     system(sCmd1)
     
-    sysCmd2 <- "gunzip -f ./inst/tmp/Homo_sapiens.GRCh37.73.gtf.gz"
+    sysCmd2 <- paste(
+      "gunzip -f ",
+      file.path(tmp, "Homo_sapiens.GRCh37.73.gtf.gz"),
+      sep = "")
     system(sysCmd2)
     
     library(GenomicFeatures)
     txdb <- makeTxDbFromGFF(
-        "./inst/tmp/Homo_sapiens.GRCh37.73.gtf",
+        file.path(tmp, "Homo_sapiens.GRCh37.73.gtf"),
         format = "gtf"
     )
     annotation <- as.data.frame(genes(txdb))[, -4]
@@ -43,7 +48,8 @@ getAnnotation <- function() {
     ensembl <- biomaRt::useMart(
         biomart = "ENSEMBL_MART_ENSEMBL",
         dataset = "hsapiens_gene_ensembl",
-        host = "sep2013.archive.ensembl.org"
+        #host = "sep2013.archive.ensembl.org"
+        host = "dec2013.archive.ensembl.org"
     )
     
     IDs <- biomaRt::getBM(
