@@ -1,0 +1,37 @@
+---
+title: "RNAseq analysis"
+author: "Jason T. Serviss"
+date: "09/06/2017"
+output:
+  html_document:
+    code_folding: hide
+    highlight: pygments
+    theme: readable
+---
+
+```{r libraries, message=FALSE, warning = FALSE}
+packages <- c(
+  "acidAdaptedRNAseq"
+)
+purrr::walk(packages, library, character.only = TRUE)
+rm(packages)
+
+```
+
+Differential expression analysis was performed using the counts data, located in the inst/data-raw/count_table.txt file, as well as, the runHCT.R script, which also calls funcitons in the deFunctions.R and getAnnotation.R files. Resulting outputs were saved in the /data folder. The differential expression analysis compares parental (pH 7.4) vs adapted (pH 6.8) samples.
+
+Several plots were generated to view the results of the RNAseq differential expression results. Below we plot the mean expression per gene and the fold change between the compared samples. Results indicate that the fold changes are not strongly biased towards lowly expressed genes and that the filtering of expressed genes pre-differential expression was sucessful.
+```{r, fig.align='center', fig.height=8, fig.width=7}
+MAplot()
+```
+
+We can furthermore look at a volcano plot of the results from the differential expression analysis where we have highlighted the 5 genes with the highest/lowest fold change that are also significant at alpha 0.05.
+
+```{r, fig.align='center', fig.height=8, fig.width=7}
+volcanoPlot()
+```
+
+Finally, we can perform t-SNE using the top 500 most variable genes in the data to see that the samples group as we would expect.
+```{r, fig.align='center', fig.height=8, fig.width=7}
+TSNE(ntop = 500)
+```
