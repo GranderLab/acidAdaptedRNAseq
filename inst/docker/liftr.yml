@@ -15,6 +15,7 @@ bioc:
   - GOSim
   - AnnotationDbi
   - GO.db
+  - SummarizedExperiment
 cran:
   - Rtsne/0.13
   - ggthemes/3.4.0
