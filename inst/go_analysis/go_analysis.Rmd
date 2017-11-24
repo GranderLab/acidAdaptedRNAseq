@@ -416,7 +416,7 @@ figure1 %<>% fill_panel(p8, column = 4, row = 4, label = "J")
 #save final figure
 ggsave(
     plot = figure1, 
-    '~/Github/acidAdaptedRNAseq/inst/GOanalysis/figure.pdf', 
+    '~/Github/acidAdaptedRNAseq/inst/go_analysis/figure.pdf', 
     width = 550, 
     height = 350, 
     units = "mm", 
@@ -424,7 +424,7 @@ ggsave(
 )
 ggsave(
     plot = mylegend2, 
-    '~/Github/acidAdaptedRNAseq/inst/GOanalysis/legend.pdf'
+    '~/Github/acidAdaptedRNAseq/inst/go_analysis/legend.pdf'
 )
 ```
 
