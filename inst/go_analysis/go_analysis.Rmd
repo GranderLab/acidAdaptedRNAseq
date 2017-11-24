@@ -411,21 +411,23 @@ figure1 %<>% fill_panel(p5, column = 4, row = 1, label = "G")
 figure1 %<>% fill_panel(p6, column = 4, row = 2, label = "H")
 figure1 %<>% fill_panel(p7, column = 4, row = 3, label = "I")
 figure1 %<>% fill_panel(p8, column = 4, row = 4, label = "J")
+
 #figure1
 
 #save final figure
-# ggsave(
-#     plot = figure1, 
-#     '~/Github/acidAdaptedRNAseq/inst/go_analysis/figure.pdf', 
-#     width = 550, 
-#     height = 350, 
-#     units = "mm", 
-#     limitsize = FALSE
-# )
-# ggsave(
-#     plot = mylegend2, 
-#     '~/Github/acidAdaptedRNAseq/inst/go_analysis/legend.pdf'
-# )
+ggsave(
+    plot = figure1,
+    './figure.pdf',
+    width = 550,
+    height = 350,
+    units = "mm",
+    limitsize = FALSE
+)
+ggsave(
+    plot = mylegend2,
+    './legend.pdf'
+)
+print(getwd())
 ```
 
 ```{r}
