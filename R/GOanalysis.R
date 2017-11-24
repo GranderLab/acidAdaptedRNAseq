@@ -614,7 +614,7 @@ plotHeatmap <- function(comSummary) {
     ) +
     guides(
         fill = guide_colorbar(
-        title = "z-score",
+        title = "Expression (rescaled to [0, 1])",
         title.position = "bottom",
         title.hjust = 0.5,
         barwidth = 10
