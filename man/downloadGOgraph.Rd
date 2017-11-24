@@ -13,11 +13,6 @@ A GO graph in igraph format with vertex attributes \emph{name} set to
 \description{
 Downloads the GO graph for a set of GO IDs and converts it to igraph format.
 }
-\examples{
-terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
-downloadGOgraph(terms)
-
-}
 \author{
 Jason T. Serviss
 }

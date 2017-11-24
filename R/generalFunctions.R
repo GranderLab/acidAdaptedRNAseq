@@ -48,7 +48,7 @@ namedListToTibble <- function(l) {
 #' getGO.db()
 #'
 #' @export
-#' @importFrom AnnotationDbi select keys
+#' @importFrom AnnotationDbi keys
 #' @import GO.db
 
 getGO.db <- function() {
@@ -96,7 +96,7 @@ col64 <- function() {
 #' @rdname g_legend
 #' @author Jason T. Serviss
 #' @keywords g_legend
-#' @param a.gplot A ggplot.
+#' @param a.ggplot A ggplot.
 #' @examples
 #' #no example yet
 #'

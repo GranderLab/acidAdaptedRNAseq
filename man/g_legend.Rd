@@ -7,7 +7,7 @@
 g_legend(a.ggplot)
 }
 \arguments{
-\item{a.gplot}{A ggplot.}
+\item{a.ggplot}{A ggplot.}
 }
 \description{
 Get ggplot legend.

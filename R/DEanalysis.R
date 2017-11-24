@@ -24,6 +24,7 @@ NULL
 #' @importFrom ggthemes theme_few scale_colour_ptol
 #' @importFrom stats var
 #' @importFrom magrittr "%>%"
+#' @importFrom stats as.dist cor
 
 TSNE <- function(ntop = 500) {
   x <- deResultsRld

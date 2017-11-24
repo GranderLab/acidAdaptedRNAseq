@@ -170,9 +170,6 @@ runTopGO <- function(save=FALSE) {
 #' @keywords downloadGOgraph
 #' @return A GO graph in igraph format with vertex attributes \emph{name} set to
 #'    the GO IDs and the edge attribute \emph{weight} set to 1 for all edges.
-#' @examples
-#' terms <- c("GO:0006915", "GO:0097152", "GO:0006664", "GO:1903509")
-#' downloadGOgraph(terms)
 #'
 #' @export
 #' @importFrom igraph igraph.from.graphNEL
@@ -182,12 +179,6 @@ NULL
 
 downloadGOgraph <- function(terms) {
     g <- igraph.from.graphNEL(getGOGraph(terms))
-    .delete.isolates(g, mode = 'all')
-}
-
-.delete.isolates <- function(graph, mode = 'all') {
-  isolates <- which(degree(graph, mode = mode) == 0) - 1
-  delete.vertices(graph, isolates)
 }
 
 #' collapseGraph
@@ -560,6 +551,8 @@ rescale <- function() {
 #'
 #' @export
 #' @importFrom magrittr %>%
+#' @importFrom stats as.dist cor hclust
+
 NULL
 
 clusterForOrder <- function(data){
