@@ -25,6 +25,11 @@ NULL
 
 plotFigure <- function(figure, ...) {
   if(figure %in% c("go_analysis", "RNAseq")) {
+    path <- if_else(
+      figure == "go_analysis",
+      "go_analysis/go_analysis.Rmd",
+      "rna_seq_analysis/rna_seq_analysis.Rmd"
+    )
     runDockerAndView(path)
   } else {
     stop("You have entered an invalid figure. Please enter \"go_analysis\" or \"RNAseq\".")
