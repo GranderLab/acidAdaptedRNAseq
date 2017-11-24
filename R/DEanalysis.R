@@ -25,7 +25,7 @@ NULL
 #' @importFrom stats var
 #' @importFrom magrittr "%>%"
 
-TSNE <- function(nTop = 500) {
+TSNE <- function(ntop = 500) {
   x <- deResultsRld
   
   #select top genes
@@ -36,7 +36,8 @@ TSNE <- function(nTop = 500) {
   d <- as.dist(1-cor(x[select, ], method = "p"))
   
   #run tsne, fix labels, and plot
-  as.data.frame(Rtsne(d, is_distance = TRUE, perplexity = 1)$Y) %>%
+  set.seed(124234)
+  as.data.frame(Rtsne(d, is_distance = TRUE, perplexity = 1, max_iter = 5000)$Y) %>%
   as_tibble() %>%
   rename(dim1 = V1, dim2 = V2) %>%
   mutate(samples = gsub("\\.", " ", colnames(x))) %>%
@@ -48,8 +49,8 @@ TSNE <- function(nTop = 500) {
     TRUE ~ "error"
   )) %>%
   mutate(group = gsub("(.*).{6}$", "\\1", samples)) %>%
-  ggplot(aes_string('dim1', 'dim2', 'colour = group')) +
-    geom_point(size = 3, alpha = 0.7) +
+  ggplot(aes(dim1, dim2)) +
+    geom_point(size = 3, alpha = 0.7, aes(colour = group)) +
     theme_few() +
     scale_colour_ptol() +
     theme(legend.position = "top") +
@@ -78,11 +79,10 @@ TSNE <- function(nTop = 500) {
 NULL
 
 MAplot <- function() {
-    data <- deResults %>%
+    deResults %>%
         as_tibble() %>%
-        select(~baseMean, ~log2FoldChange)
-    
-    p <- ggplot(data, aes_string('log2(baseMean)', 'log2FoldChange'))+
+        select(baseMean, log2FoldChange) %>%
+        ggplot(aes_string('log2(baseMean)', 'log2FoldChange'))+
         geom_point(alpha = 0.1)+
         theme_few()+
         labs(
@@ -97,10 +97,6 @@ MAplot <- function() {
         theme(
             plot.subtitle = element_text(size = 10)
         )
-    
-    p
-    return(p)
-
 }
 
 #' volcanoPlot
