@@ -24,7 +24,12 @@ NULL
 #' @importFrom tools file_path_sans_ext
 
 plotFigure <- function(figure, ...) {
-  path <- "go_analysis/go_analysis.Rmd"
+  path <- case_when(
+    figure == "go_analysis" ~ "go_analysis/go_analysis.Rmd",
+    figure == "RNAseq" ~ "rna_seq_analysis/rna_seq_analysis.Rmd" ~
+    TRUE ~ stop("You have entered an invalid figure. Please enter \"go_analysis\" or \"RNAseq\".")
+  )
+  #path <- "go_analysis/go_analysis.Rmd"
   runDockerAndView(path)
 }
 
