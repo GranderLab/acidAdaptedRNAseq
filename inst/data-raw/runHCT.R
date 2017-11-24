@@ -10,6 +10,7 @@
 #'
 #' @name runHCT
 #' @rdname runHCT
+#' @param save logical; Indicates if output should be saved.
 #' @author Jason T. Serviss
 #' @keywords runHCT
 #' @examples
@@ -17,7 +18,10 @@
 #' \dontrun{runHCT()}
 NULL
 
-runHCT <- function(){
+#' @importFrom DESeq2 DESeqDataSetFromMatrix DESeq results rlogTransformation counts
+#' @importFrom SummarizedExperiment assay
+
+runHCT <- function(save = TRUE) {
     
     packagePath <- getwd()
     
@@ -27,11 +31,11 @@ runHCT <- function(){
     source(file.path(dataINdir, 'deFunctions.R'))
     
     ##check for annotation and load
-    gtfSimplePATH <- file.path(packagePath, 'data', 'annotation.rda')
+    gtfSimplePATH <- file.path(packagePath, 'data', 'geneAnnotation.rda')
     
     if (!file.exists(gtfSimplePATH)) {
         print("making annotation")
-        c <- "Rscript -e \"source('./inst/R.scripts/getAnnotation.R'); getAnnotation()\""
+        c <- "Rscript -e \"source('./inst/data-raw/getAnnotation.R'); getAnnotation()\""
         system(c)
     }
     
@@ -95,19 +99,19 @@ runHCT <- function(){
     ##############################################
     
     print("running DESeq2")
-    exp.cnts <- DESeq2::DESeqDataSetFromMatrix(
+    exp.cnts <- DESeqDataSetFromMatrix(
         countData = counts_filtered,
         colData = exp,
         design = ~ condition
     )
-    exp.deg <- DESeq2::DESeq(exp.cnts)
-    results <- DESeq2::results(exp.deg)
+    exp.deg <- DESeq(exp.cnts)
+    results <- results(exp.deg)
     results$ID <- rownames(results)
     DESeq2 <- as.data.frame(results[, c(7, 1:6)])
     
     ##save rld
-    rld <- DESeq2::rlogTransformation(exp.deg)
-    DESeq2rld.HCT116 <- as.data.frame(SummarizedExperiment::assay(rld))
+    rld <- rlogTransformation(exp.deg)
+    DESeq2rld.HCT116 <- as.data.frame(assay(rld))
     colnames(DESeq2rld.HCT116) <- paste(
         "HCT116",
         colnames(DESeq2rld.HCT116),
@@ -115,11 +119,11 @@ runHCT <- function(){
     )
     fileOUT4 <- paste(dataOUTdir, "deResultsRld.rda", sep = "/")
     deResultsRld <- DESeq2rld.HCT116
-    save(deResultsRld, file = fileOUT4)
+    if(save) {save(deResultsRld, file = fileOUT4)}
     
     ##merge with counts and gtf
     norm.counts <- as.data.frame(
-        DESeq2::counts(exp.deg, normalized = TRUE)
+        counts(exp.deg, normalized = TRUE)
     )
     norm.counts$ID <- rownames(norm.counts)
     DESeq2 <- merge(DESeq2, norm.counts, by = "ID", all.x = TRUE)
@@ -133,7 +137,8 @@ runHCT <- function(){
     ##save
     hsa.res.pth <- file.path(dataOUTdir, 'deResults.rda')
     deResults <- DESeq2.HCT116
-    save(deResults, file = hsa.res.pth)
+    if(save) {save(deResults, file = hsa.res.pth)}
     
     print("done")
 }
+
