@@ -519,15 +519,15 @@ extractGenesFromGO <- function() {
         setNames(c("GOID", "ID"))
 }
 
-#' calculateZscore
+#' rescale
 #'
-#' Calculates the z-score, i.e. scales the expression per gene to a range
-#' of 0 to 1 using \code{\link{deResultsRld}}.
+#' Rescales the \code{\link{deResultsRld}} expression per gene to a range
+#' of 0 to 1.
 #'
-#' @name calculateZscore
-#' @rdname calculateZscore
+#' @name rescale
+#' @rdname rescale
 #' @author Jason T. Serviss
-#' @keywords calculateZscore
+#' @keywords rescale
 #' @examples
 #' #no example yet
 #'
@@ -537,7 +537,7 @@ extractGenesFromGO <- function() {
 #' @importFrom dplyr rename
 NULL
 
-calculateZscore <- function() {
+rescale <- function() {
     t(apply(deResultsRld, 1, function(x)
         (x - min(x)) / (max(x) - min(x))
     )) %>%
