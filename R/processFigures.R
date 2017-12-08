@@ -8,13 +8,13 @@
 #' @name plotFigure
 #' @rdname plotFigure
 #' @aliases plotFigure
-#' @param figure Character;
+#' @param figure Character; Can be "go_analysis" or "RNAseq"
 #' @param ... additional arguments to pass on.
 #' @return spCounts object.
 #' @author Jason T. Serviss
 #' @examples
 #'
-#' \dontrun{plotFigure("figure1a")}
+#' \dontrun{plotFigure("go_analysis")}
 #'
 NULL
 
@@ -37,12 +37,12 @@ plotFigure <- function(figure, ...) {
 }
 
 #runs liftr render_docker and opens the html output
-runDockerAndView <- function(path) {
+runDockerAndView <- function(path, ...) {
   sans_ext <- file_path_sans_ext
   
   #move all files to tmp folder
   rmdPath <- system.file(path, package = "acidAdaptedRNAseq")
-  tmpPath <- moveToTmp(rmdPath)
+  tmpPath <- moveToTmp(rmdPath, ...)
   
   #render rmd in docker environment
   render_docker(file.path(tmpPath, basename(rmdPath)), cache = FALSE)
@@ -55,7 +55,7 @@ runDockerAndView <- function(path) {
 
 #runs lift and copies the .rmd file and Dockerfile to a tmp directory (due to
 # the fact that liftr wants everything in the same directory)
-moveToTmp <- function(rmdPath){
+moveToTmp <- function(rmdPath, ...){
   tmpPath <- tempdir()
   
   #copy rmd

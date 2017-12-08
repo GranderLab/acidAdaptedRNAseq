@@ -720,10 +720,7 @@ plotGenes <- function(data, term, n = 10){
         size = 1
     ) +
     theme_few() +
-    scale_colour_manual(
-        labels = c("Adapted", "Parental"),
-        values = c("#FDFB2C", "#F70B17")
-    ) +
+    scale_colour_manual(values = c("#F70B17", "#FDFB2C")) +
     theme(
         axis.text.x = element_text(angle = 90, size = 8),
         axis.text.y = element_text(size = 8),

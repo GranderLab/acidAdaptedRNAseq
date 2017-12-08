@@ -104,11 +104,13 @@ are now located in, is used to represent this relationship.
 #get GO graph
 g <- downloadGOgraph(sig$GO.ID)
 
+#save(g, file = "./goGraph.rda", compress = "bzip2")
+
 #run community analysis
 tmp <- collapseGraph(g)
 cg <- tmp[[1]]
 comSummary <- tmp[[2]] %>%
-    left_join(select(sig, GO.ID, classicFisher), by=c("GOID" = "GO.ID"))
+    left_join(dplyr::select(sig, GO.ID, classicFisher), by=c("GOID" = "GO.ID"))
 ```
 
 The community detection algorithm detected a total of 39 communities. Below we 
@@ -289,13 +291,13 @@ they are located in.
 rld <- deResultsRld %>%
     as.data.frame() %>%
     rownames_to_column() %>%
-    rename(ID = rowname) %>%
+    dplyr::rename(ID = rowname) %>%
     as_tibble() %>%
     gather(condition, expression, -ID)
 
 #set up gene p-values for merge
 ps <- deResults %>%
-    select(ID, padj) %>%
+    dplyr::select(ID, padj) %>%
     as_tibble()
 
 #setup data for plot

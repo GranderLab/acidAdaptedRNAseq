@@ -8,7 +8,7 @@
 plotFigure(figure, ...)
 }
 \arguments{
-\item{figure}{Character;}
+\item{figure}{Character; Can be "go_analysis" or "RNAseq"}
 
 \item{...}{additional arguments to pass on.}
 }
@@ -23,7 +23,7 @@ Include description.
 }
 \examples{
 
-\dontrun{plotFigure("figure1a")}
+\dontrun{plotFigure("go_analysis")}
 
 }
 \author{
