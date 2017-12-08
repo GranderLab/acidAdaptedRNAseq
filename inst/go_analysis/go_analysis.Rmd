@@ -104,8 +104,6 @@ are now located in, is used to represent this relationship.
 #get GO graph
 g <- downloadGOgraph(sig$GO.ID)
 
-#save(g, file = "./goGraph.rda", compress = "bzip2")
-
 #run community analysis
 tmp <- collapseGraph(g)
 cg <- tmp[[1]]
@@ -133,8 +131,8 @@ names(genesPerCom) <- uCommunityNames
 
 namedListToTibble(genesPerCom) %>%
     setNames(c("communityName", "nrCommunityGenes")) %>%
-    inner_join(distinct(select(comSummary, communityName, communityTerm))) %>%
-    select(communityTerm, nrCommunityGenes, -communityName)
+    inner_join(distinct(dplyr::select(comSummary, communityName, communityTerm))) %>%
+    dplyr::select(communityTerm, nrCommunityGenes, -communityName)
 ```
 
 As a measure of the effectivity of the community detection we can review the 
@@ -177,9 +175,9 @@ terms rather than a significant term itself (although in some cases it is).
 ```{r, fig.align='center', fig.height=17, fig.width=15, eval=TRUE, message=FALSE, warning=FALSE}
 #add vertices and edges from uncollapsed graph
 toAdd <- comSummary %>%
-    filter(!GOID %in% communityID) %>%
-    filter(classicFisher < 0.05) %>%
-    select(GOID, communityID) %>%
+    dplyr::filter(!GOID %in% communityID) %>%
+    dplyr::filter(classicFisher < 0.05) %>%
+    dplyr::select(GOID, communityID) %>%
     setNames(c("from", "to"))
 
 cg <- addBackVertexAndEdges(cg, toAdd)
@@ -253,7 +251,7 @@ zNorm <- rescale()
 
 #merge data, note that GO graph terms not in sig are included in comSummary
 heatmap <- comSummary %>%
-    filter(!is.na(classicFisher)) %>%
+    dplyr::filter(!is.na(classicFisher)) %>%
     full_join(genePerTerm, by = "GOID") %>%
     left_join(zNorm, by = "ID") %>%
     gather(condition, zScore, -communityName, 
@@ -302,7 +300,7 @@ ps <- deResults %>%
 
 #setup data for plot
 barDat <- comSummary %>%
-    filter(!is.na(classicFisher)) %>%
+    dplyr::filter(!is.na(classicFisher)) %>%
     full_join(genePerTerm, by = "GOID") %>%
     left_join(rld, by = "ID") %>%
     left_join(geneAnnotation, by = "ID") %>%
