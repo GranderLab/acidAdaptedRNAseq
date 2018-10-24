@@ -10,6 +10,6 @@ r_check_args: "--no-build-vignettes --no-manual --timings"
   - linux
   - osx
 sudo: required
-apt_packages: libudunits2-dev
+apt_packages: libudunits2-dev libmagick++-dev
 before_install:
   Rscript -e 'update.packages(ask = FALSE)'
